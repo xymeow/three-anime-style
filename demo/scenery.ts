@@ -180,8 +180,6 @@ export function courtyard() {
     );
     hill(root, x, 0.6, z, [0.32, 0.3, 0.32], material("#7f916a"));
   }
-  hill(root, -2, -0.8, -5, [5, 2.8, 2.7], material("#9ea890"));
-  hill(root, 4, -1, -5, [4, 3.6, 3], material("#839687"));
   return { root };
 }
 export function lighthouse() {
