@@ -1,0 +1,48 @@
+{
+  "name": "@xymeow/three-ink",
+  "version": "0.1.0",
+  "description": "Three-tone shading, pen outlines and frosted film for Three.js, with an agent integration skill.",
+  "type": "module",
+  "license": "MIT",
+  "author": "xymeow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xymeow/three-ink.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "build:demo": "vite build",
+    "prepare": "npm run build",
+    "format": "prettier --write src demo tests scripts index.html vite.config.ts *.json *.md skills .github",
+    "format:check": "prettier --check src demo tests scripts index.html vite.config.ts *.json *.md skills .github"
+  },
+  "peerDependencies": {
+    "three": "~0.186.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "prettier": "3.6.2",
+    "three": "0.186.0",
+    "typescript": "5.9.3",
+    "vite": "6.4.3"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

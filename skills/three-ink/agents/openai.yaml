@@ -1,0 +1,4 @@
+interface:
+  display_name: "Three Ink"
+  short_description: "Add drawn shading and frosted film to Three.js"
+  default_prompt: "Use $three-ink to add three-tone shading, pen outlines and a 50% frosted finish to this Three.js scene while preserving its animation."
