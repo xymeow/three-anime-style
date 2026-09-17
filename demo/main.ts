@@ -6,10 +6,17 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import {
   applyInk,
+  createBrushTexture,
   InkPass,
   steppedTime,
   type InkBinding,
 } from "../src/index.js";
+import {
+  courtyard,
+  lighthouse,
+  withPaintedStage,
+  isScenery,
+} from "./scenery.js";
 import { studioRobot } from "./model.js";
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -47,6 +54,9 @@ const ink = new InkPass(scene, camera, {
 });
 composer.addPass(ink);
 composer.addPass(new OutputPass());
+const brushMap = createBrushTexture();
+let paintScale = 0.24,
+  currentClips: T.AnimationClip[] = [];
 let model: T.Object3D,
   binding: InkBinding,
   mixer: T.AnimationMixer | undefined,
@@ -90,10 +100,31 @@ function mount(
   ink.reset();
   model = root;
   scene.add(root);
-  binding = applyInk(root);
+  const extent = new T.Box3().setFromObject(root).getSize(new T.Vector3());
+  paintScale = 1.8 / Math.max(extent.x, extent.y, extent.z, 0.1);
+  binding = applyInk(root, {
+    paint: { map: brushMap, scale: paintScale, select: isScenery },
+  });
   animate = motion;
   mixer = clips.length ? new T.AnimationMixer(root) : undefined;
-  clips.forEach((c) => mixer!.clipAction(c).play());
+  currentClips = clips;
+  const motionSelect = $<HTMLSelectElement>("motion");
+  motionSelect.replaceChildren();
+  clips.forEach((clip, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = clip.name || `Clip ${index + 1}`;
+    motionSelect.append(option);
+  });
+  $("motion-label").hidden = !clips.length;
+  if (clips.length) {
+    const index = Math.max(
+      0,
+      clips.findIndex((c) => c.name.toLowerCase() === "walk"),
+    );
+    motionSelect.value = String(index);
+    mixer!.clipAction(clips[index]).play();
+  }
   start = performance.now();
   const box = new T.Box3().setFromObject(root),
     center = box.getCenter(new T.Vector3()),
@@ -102,7 +133,7 @@ function mount(
   controls.target.copy(center);
   camera.position
     .copy(center)
-    .add(new T.Vector3(1, 0.6, 1.6).normalize().multiplyScalar(radius * 2.1));
+    .add(new T.Vector3(1, 0.6, 1.6).normalize().multiplyScalar(radius * 1.85));
   camera.near = radius / 100;
   camera.far = radius * 100;
   camera.updateProjectionMatrix();
@@ -115,6 +146,7 @@ function mount(
   key.shadow.camera.far = radius * 10;
   key.shadow.camera.updateProjectionMatrix();
   key.shadow.bias = -0.0003;
+  key.shadow.normalBias = radius * 0.003;
   updateLight();
   $("model-name").textContent = name.toUpperCase();
   status.textContent = `${binding.materials.length} materials adapted${clips.length ? ` · ${clips.length} animation clip${clips.length === 1 ? "" : "s"}` : ""}.`;
@@ -135,7 +167,15 @@ function updateLight() {
     .copy(controls.target)
     .add(new T.Vector3(Math.sin(a) * size, size * 1.3, Math.cos(a) * size));
 }
+function updatePaint() {
+  binding?.setPaint({
+    strength:
+      mode === "cel" ? 0 : Number($<HTMLInputElement>("paint").value) / 100,
+    scale: (paintScale * 100) / Number($<HTMLInputElement>("brush-size").value),
+  });
+}
 function updateMode() {
+  updatePaint();
   binding?.setEnabled(mode !== "original");
   ink.enabled = mode === "ink";
   document
@@ -157,25 +197,129 @@ for (const id of ["acrylic", "grain", "pen"])
     ink.configure(id === "pen" ? { penWidth: v / 10 } : { [id]: v / 100 });
   };
 $<HTMLInputElement>("light").oninput = updateLight;
-$("reset").onclick = () => {
-  generation++;
-  const robot = studioRobot();
-  mount(robot.root, "Studio robot", [], robot.animate);
+const examples = {
+  robot: {
+    name: "Studio robot",
+    credit: "Original procedural model · MIT",
+    url: "https://github.com/xymeow/three-ink",
+    factory: studioRobot,
+  },
+  courtyard: {
+    name: "Sunlit courtyard",
+    credit: "Original architectural scene · MIT",
+    url: "https://github.com/xymeow/three-ink",
+    factory: courtyard,
+  },
+  lighthouse: {
+    name: "Lighthouse coast",
+    credit: "Original coastal scene · MIT",
+    url: "https://github.com/xymeow/three-ink",
+    factory: lighthouse,
+  },
+  avocado: {
+    name: "Avocado",
+    credit: "Microsoft · CC0 · via Khronos",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Avocado",
+    file: "models/avocado.glb",
+    stage: true,
+  },
+  fox: {
+    name: "Animated fox",
+    credit: "PixelMannen / tomkranis / AsoboStudio / scurest · CC0 + CC BY 4.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox",
+    file: "models/fox.glb",
+    stage: true,
+  },
+  fixture: {
+    name: "Animation fixture",
+    credit: "Original skinning + morph fixture · MIT",
+    url: "https://github.com/xymeow/three-ink",
+    file: "animation-fixture.glb",
+    stage: false,
+  },
 };
-$("fixture").onclick = async () => {
-  const token = ++generation;
+type ExampleKey = keyof typeof examples;
+function credit(text: string, url?: string) {
+  const el = $<HTMLAnchorElement>("credit");
+  el.textContent = text;
+  if (url) el.href = url;
+  else el.removeAttribute("href");
+}
+function markExample(id: string) {
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-example]")
+    .forEach((b) => b.classList.toggle("active", b.dataset.example === id));
+}
+async function chooseExample(id: ExampleKey) {
+  const token = ++generation,
+    example = examples[id];
+  status.textContent = "Opening " + example.name + "…";
   try {
-    const response = await fetch(
-      import.meta.env.BASE_URL + "animation-fixture.glb",
-    );
-    if (!response.ok) throw new Error("Fixture unavailable");
-    const blob = await response.blob();
-    if (token === generation)
-      void load(new File([blob], "animation-fixture.glb"));
+    if ("factory" in example) {
+      const item: { root: T.Object3D; animate?: (t: number) => void } =
+        example.factory();
+      mount(item.root, example.name, [], item.animate);
+    } else {
+      const response = await fetch(import.meta.env.BASE_URL + example.file);
+      if (!response.ok) throw new Error("Model download failed");
+      const gltf = await parseGLB(await response.arrayBuffer());
+      if (token !== generation) {
+        disposeModel(gltf.scene);
+        return;
+      }
+      mount(
+        example.stage ? withPaintedStage(gltf.scene) : gltf.scene,
+        example.name,
+        gltf.animations,
+      );
+    }
+    credit(example.credit, example.url);
+    markExample(id);
+    const url = new URL(location.href);
+    url.searchParams.set("example", id);
+    history.replaceState(null, "", url);
   } catch (e) {
     if (token === generation) status.textContent = String(e);
   }
+}
+document
+  .querySelectorAll<HTMLButtonElement>("[data-example]")
+  .forEach(
+    (b) =>
+      (b.onclick = () => void chooseExample(b.dataset.example as ExampleKey)),
+  );
+$<HTMLSelectElement>("motion").onchange = () => {
+  mixer?.stopAllAction();
+  const clip = currentClips[Number($<HTMLSelectElement>("motion").value)];
+  if (clip) mixer?.clipAction(clip).reset().play();
+  start = performance.now();
 };
+for (const id of ["paint", "brush-size"])
+  $<HTMLInputElement>(id).oninput = () => {
+    $(id + "-value").textContent =
+      id === "paint"
+        ? `${$<HTMLInputElement>(id).value}%`
+        : `${(Number($<HTMLInputElement>(id).value) / 100).toFixed(1)}×`;
+    updatePaint();
+  };
+async function parseGLB(data: ArrayBuffer) {
+  const manager = new T.LoadingManager();
+  manager.setURLModifier((url) => {
+    if (!url.startsWith("blob:") && !url.startsWith("data:"))
+      throw new Error(
+        "Embed textures in the GLB; external texture URLs are disabled.",
+      );
+    return url;
+  });
+  const gltf = await new GLTFLoader(manager).parseAsync(data, "");
+  // The viewer owns these freshly loaded geometries. Keep the reusable adapter non-mutating.
+  gltf.scene.traverse((object) => {
+    const mesh = object as T.Mesh;
+    if (mesh.isMesh && !mesh.geometry.getAttribute("normal"))
+      mesh.geometry.computeVertexNormals();
+  });
+  return gltf;
+}
 async function load(file: File) {
   const token = ++generation;
   if (!file.name.toLowerCase().endsWith(".glb")) {
@@ -184,23 +328,14 @@ async function load(file: File) {
   }
   status.textContent = "Opening " + file.name + "…";
   try {
-    const manager = new T.LoadingManager();
-    manager.setURLModifier((url) => {
-      if (!url.startsWith("blob:") && !url.startsWith("data:"))
-        throw new Error(
-          "External texture URLs are disabled; embed textures in the GLB.",
-        );
-      return url;
-    });
-    const gltf = await new GLTFLoader(manager).parseAsync(
-      await file.arrayBuffer(),
-      "",
-    );
+    const gltf = await parseGLB(await file.arrayBuffer());
     if (token !== generation) {
       disposeModel(gltf.scene);
       return;
     }
-    mount(gltf.scene, file.name, gltf.animations);
+    mount(withPaintedStage(gltf.scene), file.name, gltf.animations);
+    markExample("");
+    credit("Local GLB · painted stage added by Three Ink");
   } catch (e) {
     if (token === generation)
       status.textContent =
@@ -238,7 +373,15 @@ $("export").onclick = () => {
     [
       JSON.stringify(
         {
-          material: { thresholds: [0.51, 0.785] },
+          material: {
+            thresholds: [0.51, 0.785],
+            paint: {
+              strength: Number($<HTMLInputElement>("paint").value) / 100,
+              scale:
+                (paintScale * 100) /
+                Number($<HTMLInputElement>("brush-size").value),
+            },
+          },
           post: {
             acrylic: Number($<HTMLInputElement>("acrylic").value) / 100,
             grain: Number($<HTMLInputElement>("grain").value) / 100,
@@ -264,8 +407,12 @@ new ResizeObserver(() => {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }).observe(viewport);
-const robot = studioRobot();
-mount(robot.root, "Studio robot", [], robot.animate);
+const initial = new URLSearchParams(location.search).get("example");
+void chooseExample(
+  initial && Object.hasOwn(examples, initial)
+    ? (initial as ExampleKey)
+    : "courtyard",
+);
 let previous = performance.now();
 renderer.setAnimationLoop((now) => {
   const delta = Math.min((now - previous) / 1000, 0.1);

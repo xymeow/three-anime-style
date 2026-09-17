@@ -10,7 +10,7 @@
     <main>
       <header>
         <a class="wordmark" href="https://github.com/xymeow/three-ink"
-          >three ink<span> / 001</span></a
+          >three ink<span> / 002</span></a
         ><span class="edition">AN OPEN-SOURCE MATERIAL STUDY</span
         ><a href="https://github.com/xymeow/three-ink">Source ↗</a>
       </header>
@@ -24,6 +24,18 @@
           scene and make it your own.
         </p>
       </section>
+      <nav class="examples" aria-label="Example scenes">
+        <button data-example="courtyard">01 · Courtyard</button
+        ><button data-example="lighthouse">02 · Lighthouse</button
+        ><button data-example="robot">03 · Robot</button
+        ><button data-example="avocado">04 · Avocado</button
+        ><button data-example="fox">05 · Fox</button
+        ><button data-example="fixture">06 · Animation test</button>
+      </nav>
+      <div class="example-credit">
+        <a id="credit" target="_blank" rel="noreferrer"></a
+        ><a href="./ATTRIBUTION.md" target="_blank">Asset credits ↗</a>
+      </div>
       <section class="workbench">
         <div id="viewport">
           <div class="scene-label">
@@ -40,8 +52,21 @@
           <div class="segmented">
             <button data-mode="original">Original</button
             ><button data-mode="cel">Cel</button
+            ><button data-mode="paint">Paint</button
             ><button data-mode="ink" class="active">Ink + film</button>
           </div>
+          <label
+            >Scenery brushwork <output id="paint-value">70%</output
+            ><input id="paint" type="range" min="0" max="100" value="70"
+          /></label>
+          <label
+            >Brush size <output id="brush-size-value">1.0×</output
+            ><input id="brush-size" type="range" min="50" max="250" value="100"
+          /></label>
+          <p class="note brush-note">
+            Broad marks shape the scenery’s light. Choose Paint to see them
+            without film or frost.
+          </p>
           <label
             >Frosted acrylic <output id="acrylic-value">50%</output
             ><input id="acrylic" type="range" min="0" max="100" value="50"
@@ -62,6 +87,10 @@
               <option value="0">Smooth</option>
             </select></label
           >
+          <label id="motion-label" hidden
+            >Motion clip
+            <select id="motion"></select
+          ></label>
           <label
             >Light direction
             <input id="light" type="range" min="-180" max="180" value="-40"
@@ -69,13 +98,8 @@
           <div class="divider"></div>
           <p class="eyebrow">YOUR MODEL</p>
           <label class="file-button"
-            >Open a .glb file
-            <input id="file" type="file" accept=".glb" hidden /></label
-          ><button class="text-button" id="fixture">
-            Load animation fixture</button
-          ><button class="text-button" id="reset">
-            Return to studio robot
-          </button>
+            >Open a .glb file <input id="file" type="file" accept=".glb" hidden
+          /></label>
           <p class="note">
             Files stay in your browser. Embedded textures and standard materials
             work best.

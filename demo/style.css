@@ -273,3 +273,53 @@ footer {
     letter-spacing: -1px;
   }
 }
+
+.examples {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.examples button {
+  border: 1px solid #d7d9cf;
+  background: transparent;
+  padding: 10px 15px;
+  font-size: 11px;
+}
+.examples button.active {
+  background: #35473a;
+  color: #fafbf5;
+  border-color: #35473a;
+}
+.example-credit {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 13px 0 20px;
+  min-height: 16px;
+}
+.example-credit a {
+  font-size: 10px;
+  color: #6e746b;
+}
+.brush-note {
+  margin: -8px 0 25px;
+}
+[hidden] {
+  display: none !important;
+}
+@media (min-width: 801px) {
+  #viewport {
+    height: 700px;
+    min-height: 0;
+    position: sticky;
+    top: 20px;
+  }
+  .workbench {
+    align-items: start;
+  }
+  aside {
+    max-height: 700px;
+    overflow: auto;
+  }
+}

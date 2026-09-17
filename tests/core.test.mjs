@@ -160,3 +160,55 @@ test("auxiliary render failure restores scene, materials and renderer settings",
   assert.equal(renderer.autoClear, false);
   pass.dispose();
 });
+
+test("paint selection splits shared source materials without changing unselected meshes", () => {
+  const source = new T.MeshStandardMaterial(),
+    root = new T.Group(),
+    map = new T.Texture();
+  const scenery = new T.Mesh(new T.BoxGeometry(), source),
+    subject = new T.Mesh(scenery.geometry, source);
+  root.add(scenery, subject);
+  const binding = applyInk(root, {
+    paint: { map, select: (m) => m === scenery },
+  });
+  assert.notEqual(scenery.material, subject.material);
+  assert.equal(binding.materials.length, 2);
+  const painted = {
+    uniforms: {},
+    vertexShader: T.ShaderLib.toon.vertexShader,
+    fragmentShader: T.ShaderLib.toon.fragmentShader,
+  };
+  const cel = {
+    uniforms: {},
+    vertexShader: T.ShaderLib.toon.vertexShader,
+    fragmentShader: T.ShaderLib.toon.fragmentShader,
+  };
+  scenery.material.onBeforeCompile(painted, {});
+  subject.material.onBeforeCompile(cel, {});
+  assert.match(painted.vertexShader, /modelMatrix \* inkPosition/);
+  assert.match(painted.vertexShader, /instanceMatrix \* inkPosition/);
+  assert.match(painted.fragmentShader, /return mix\(inkShadow,inkLight,v\)/);
+  assert.doesNotMatch(cel.fragmentShader, /inkBrushMap/);
+  assert.equal(painted.uniforms.inkBrushMap.value, map);
+  binding.setPaint({ strength: 0.9, scale: 0.4 });
+  assert.equal(painted.uniforms.inkPaintStrength.value, 0.9);
+  assert.equal(painted.uniforms.inkPaintScale.value, 0.4);
+  assert.throws(() => binding.setPaint({ strength: 2 }));
+  assert.throws(() => binding.setPaint({ scale: 0 }));
+  let disposed = false;
+  map.addEventListener("dispose", () => (disposed = true));
+  binding.dispose();
+  assert.equal(disposed, false);
+  assert.equal(scenery.material, source);
+  assert.equal(subject.material, source);
+});
+test("invalid paint options fail before attaching a binding", () => {
+  const mesh = new T.Mesh(new T.BoxGeometry(), new T.MeshStandardMaterial()),
+    original = mesh.material;
+  assert.throws(() =>
+    applyInk(mesh, { paint: { map: new T.Texture(), strength: -1 } }),
+  );
+  assert.equal(mesh.material, original);
+  const binding = applyInk(mesh);
+  binding.dispose();
+});

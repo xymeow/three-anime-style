@@ -5,7 +5,7 @@ description: Add Three Ink three-tone shading, pen outlines, film grain and fros
 
 # Three Ink integration
 
-Integrate into the user's existing scene and animation loop. Three Ink exports `applyInk`, `InkPass`, and `steppedTime` from `@xymeow/three-ink`.
+Integrate into the user's existing scene and animation loop. Three Ink exports `applyInk`, `InkPass`, `createBrushTexture`, and `steppedTime` from `@xymeow/three-ink`.
 
 ## Inspect first
 
@@ -16,7 +16,7 @@ Integrate into the user's existing scene and animation loop. Three Ink exports `
 
 ## Connect
 
-Install with `npm install three@0.186.0 github:xymeow/three-ink#v0.1.0` when these dependencies are absent and r186 fits the app. The package is not on npm yet. Respect an existing package manager and lockfile.
+Install with `npm install three@0.186.0 github:xymeow/three-ink#v0.2.0` when these dependencies are absent and r186 fits the app. The package is not on npm yet. Respect an existing package manager and lockfile.
 
 ```ts
 import { applyInk, InkPass, steppedTime } from "@xymeow/three-ink";
@@ -59,3 +59,11 @@ Keep renderer and composer sizes synchronized. If DPR changes, update renderer/c
 Run the app's checks, then inspect actual browser rendering: original/effect switching, color and lighting, resizing, orbit controls, animation, and at least one representative imported model. Check for shader compilation errors. Exercise model replacement and cleanup when part of the app. Report concrete unsupported material cases rather than promising universal model compatibility.
 
 Full API and source: https://github.com/xymeow/three-ink
+
+## Painted backgrounds
+
+For walls, ground and scenery, pass `paint: { map: createBrushTexture(), strength: 0.7, scale: 0.24, select: (mesh) => mesh.userData.inkPaint === true }` to `applyInk`. Mark the individual scenery meshes explicitly; unselected foreground meshes keep three bands. Selected scenery gets continuous lighting shaped by a sparse broad-stroke atlas. Do not replace this with dense noise. `scale` is atlas repeats per world unit; decrease it for wider strokes and adapt it to model dimensions. Use `binding.setPaint({strength, scale})` to update uniforms. Strength zero preserves smooth lighting but removes brush modulation.
+
+The atlas is sampled in world space with triplanar blending: orbiting does not move the marks, while moving objects travel through the pattern. Favor static backgrounds. The caller owns the brush texture and must dispose it after its bindings. `createBrushTexture()` is browser-only; SSR can import the library but must defer texture creation or supply its own texture.
+
+For third-party models, carry their own licenses and attribution, separately from the library’s MIT license. When a model has alternative clips such as Fox’s Survey/Walk/Run, play one chosen clip rather than starting all tracks at once.

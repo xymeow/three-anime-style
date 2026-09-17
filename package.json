@@ -1,6 +1,6 @@
 {
   "name": "@xymeow/three-ink",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Three-tone shading, pen outlines and frosted film for Three.js, with an agent integration skill.",
   "type": "module",
   "license": "MIT",

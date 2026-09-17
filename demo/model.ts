@@ -84,6 +84,7 @@ export function studioRobot() {
     0,
   );
   ground.receiveShadow = true;
+  ground.userData.inkPaint = true;
   return {
     root,
     animate: (time: number) => {
