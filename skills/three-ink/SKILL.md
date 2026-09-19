@@ -16,7 +16,7 @@ Integrate into the user's existing scene and animation loop. Three Ink exports `
 
 ## Connect
 
-Install with `npm install three@0.186.0 github:xymeow/three-ink#v0.2.0` when these dependencies are absent and r186 fits the app. The package is not on npm yet. Respect an existing package manager and lockfile.
+Install with `npm install three@0.186.0 github:xymeow/three-ink#v0.3.0` when these dependencies are absent and r186 fits the app. The package is not on npm yet. Respect an existing package manager and lockfile.
 
 ```ts
 import { applyInk, InkPass, steppedTime } from "@xymeow/three-ink";
@@ -68,9 +68,9 @@ The atlas is sampled in world space with triplanar blending: orbiting does not m
 
 For third-party models, carry their own licenses and attribution, separately from the library’s MIT license. When a model has alternative clips such as Fox’s Survey/Walk/Run, play one chosen clip rather than starting all tracks at once.
 
-## Experimental cel shadows (local branch)
+## Cel shadows (v0.3.0+)
 
-Check the installed API before using these options: they are not in the public `v0.2.0` tag. `applyInk(root, {shadowHighlight: 0.65})` and `binding.setShadowHighlight(value)` control a restrained reflected rim inside the cel shadow band, leaving painted scenery unchanged. Values are 0..1, default 0.
+These options require v0.3.0 or later. `applyInk(root, {shadowHighlight: 0.65})` and `binding.setShadowHighlight(value)` control a restrained reflected rim inside the cel shadow band, leaving painted scenery unchanged. Values are 0..1, default 0.
 
 For front-lit cel separation, set `InkPass` options `celShadow: 0.45` and `celShadowSelect: mesh => mesh.userData.inkCel === true`. Mark only foreground meshes, not the entire scene. Strength is 0..1 and defaults to 0. The pass reuses the ID/depth buffer, excludes the actor itself, and rejects a shadow behind a nearer surface. `penWidth: 0` does not disable this effect; set `celShadow: 0` separately when comparing original rendering.
 

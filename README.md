@@ -2,7 +2,7 @@
 
 Three-tone lighting, painted scenery, pen-like outlines, film grain and frosted acrylic for Three.js.
 
-[Live playground](https://xymeow.github.io/three-ink/) · [中文说明](README.zh-CN.md) · [Agent skill](skills/three-ink/SKILL.md)
+[Live playground](https://xymeow.github.io/three-ink/) · [Style lab](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows) · [中文说明](README.zh-CN.md) · [Agent skill](skills/three-ink/SKILL.md)
 
 Turn standard Three.js models into an illustrated scene without rebuilding their geometry or animation. The material adapter and post-processing pass work independently: use the tones alone, the texture alone, or both.
 
@@ -19,12 +19,16 @@ npm run dev
 
 Drop an embedded `.glb` into the viewport, switch between Original / Cel / Paint / Ink + film, and export a PNG or settings JSON. The default finish uses 50% acrylic. Six built-in examples cover a procedural courtyard, lighthouse coast, studio robot, Microsoft’s Avocado, the animated Fox and a skinning/morph fixture. The original procedural scenes are MIT licensed. Avocado is CC0; Fox combines CC0 and CC BY 4.0 assets. See [model credits](public/ATTRIBUTION.md). The viewer opens files locally and blocks external asset URLs.
 
+## Style lab
+
+[Open the synchronized comparison lab](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows). Four procedural environments, three animated characters and six palettes isolate broad brushwork, mesh style, cel shadows and post effects. Compare original/cel, brushwork off/on, or computed/cel shadows with the same camera and animation pose. The three licensed characters keep their [own credits](public/lab-models/CREDITS.md).
+
 ## Install in your project
 
 Requires **Three.js r186**, **WebGLRenderer** and a bundler. This version patches Three.js shader chunks, so the peer dependency stays within r186. Node 20.19+ is required for development.
 
 ```sh
-npm install three@0.186.0 github:xymeow/three-ink#v0.2.0
+npm install three@0.186.0 github:xymeow/three-ink#v0.3.0
 ```
 
 The Git dependency builds the package during installation. It is not published to npm yet.
@@ -200,9 +204,9 @@ Inspired by our [Orbitals rendering study and experiment](https://xymeow.github.
 
 Code and original scenes: MIT © 2026 xymeow. Third-party model licenses are listed in [model credits](public/ATTRIBUTION.md).
 
-### Local experimental shadow controls
+### Cel shadow controls
 
-The local experiment branch adds opt-in cel shadows (not in the published `v0.2.0` tag):
+Version 0.3.0 adds opt-in cel shadows:
 
 ```ts
 const binding = applyInk(model, { shadowHighlight: 0.65 });

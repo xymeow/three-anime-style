@@ -1,4 +1,4 @@
-# Local lab assets
+# Style lab assets
 
 Downloaded 2026-09-19. GLB files are stored unchanged. The viewer normalizes scale and placement at runtime, animates the models, and optionally replaces their rendered materials. Models are separate from the code's MIT license.
 

@@ -272,7 +272,7 @@ async function choose(name: string) {
       animations: T.AnimationClip[] = [];
     if (models[name]) {
       const gltf = await new GLTFLoader().loadAsync(
-        `/lab-models/${models[name].file}`,
+        `${import.meta.env.BASE_URL}lab-models/${models[name].file}`,
       );
       gltf.scene.traverse((o) => {
         if ((o as T.Mesh).isMesh) o.userData.inkCel = true;

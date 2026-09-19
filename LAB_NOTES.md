@@ -1,6 +1,8 @@
-# 本地风格实验室
+# 风格实验室
 
-这组实验在 `experiment/local-style-lab` 分支，入口为 `lab.html`。线上页面、主分支和 shader 公共 API 没有改动。
+这组实验从本地对照页发展而来，已随 v0.3.0 发布，入口为 `lab.html`。
+
+[在线实验室](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows)
 
 ```sh
 npm ci

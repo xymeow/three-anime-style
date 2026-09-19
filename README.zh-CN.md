@@ -2,7 +2,7 @@
 
 给 Three.js 模型加上三段色阶、背景笔触、钢笔轮廓、胶片颗粒和磨砂质感。
 
-[在线试玩](https://xymeow.github.io/three-ink/) · [完整 API](README.md) · [给 AI agent 的 skill](skills/three-ink/SKILL.md)
+[在线试玩](https://xymeow.github.io/three-ink/) · [风格实验室](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows) · [完整 API](README.md) · [给 AI agent 的 skill](skills/three-ink/SKILL.md)
 
 从我们研究 Orbitals 时做的小实验里拆出来的通用模块。三段光照负责主要的二维观感，描边和后期质感分别控制。默认磨砂强度是我们选定的 50%。
 
@@ -47,12 +47,16 @@ const ink = new InkPass(scene, camera, {
 
 模块提供 `createBrushTexture()` 与 `applyInk(..., { paint: { map, strength, scale, select } })`；`select` 决定哪些网格属于绘画式背景，`binding.setPaint()` 可在运行时调整。完整代码见英文 README。
 
-### 本地实验：动画阴影
+### 风格实验室
 
-实验分支新增 `applyInk(model, { shadowHighlight: 0.65 })` 与 `binding.setShadowHighlight(0.4)`，在角色暗部增加少量反光；范围 0..1，默认 0，不影响背景笔触材质。
+风格实验室有山地、峡谷、长廊和几何体四组场景，以及 Cesium Man、Quaternius 低模人物和表情机器人。六套配色可以比较暖灰、鲜艳色、冷色和黑白；左右共享相机与动画姿态。新角色的许可证与署名见 [模型来源](public/lab-models/CREDITS.md)。
+
+### 动画阴影
+
+v0.3.0 新增 `applyInk(model, { shadowHighlight: 0.65 })` 与 `binding.setShadowHighlight(0.4)`，在角色暗部增加少量反光；范围 0..1，默认 0，不影响背景笔触材质。
 
 `InkPass` 可设置 `celShadow: 0.45` 和 `celShadowSelect: mesh => mesh.userData.inkCel === true`，给选中的角色轮廓添加轻微片层偏移影。默认关闭；关闭描边时也能单独工作。前方物体会遮挡偏移影。
 
 实验页另有抽象接地影，并关闭角色的计算投影和接收投影。接地影是应用层放在 y=0 舞台上的平面色块，跟随可识别的髋部骨骼；崎岖地形需要应用层适配。阴影 pass 不会自行修改场景灯光或投影设置。
 
-这些选项尚未发布到 `v0.2.0`。描边修复、透视／正交斜面和遮挡的 WebGL 像素回归位于 `/tests/gpu.html`。
+这些选项从 `v0.3.0` 开始提供。描边修复、透视／正交斜面和遮挡的 WebGL 像素回归位于 `/tests/gpu.html`。
