@@ -4,11 +4,11 @@
 
 角色用三段色阶，背景用宽笔触塑造明暗，再按需要叠加钢笔描边、动画阴影、胶片颗粒和磨砂。模型、贴图和动画继续使用你自己的，各层效果可以单独调整。
 
-[**在线试玩**](https://xymeow.github.io/three-anime-style/) · [**左右对照实验室**](https://xymeow.github.io/three-anime-style/?scene=robot&palette=ice&compare=shadows) · [English](README.md)
+[**在线试玩**](https://xymeow.github.io/three-anime-style/) · [**左右对照实验室**](https://xymeow.github.io/three-anime-style/?scene=robot&palette=neutral&compare=source) · [English](README.md)
 
-![左边普通计算投影，右边抽象接地影和动画阴影](docs/shadow-comparison.png)
+![左侧原材质，右侧开启全套三渲二效果](docs/rendering-comparison.png)
 
-_同一个模型、视角与姿态。实验室可以分别切换色阶、笔触、描边和阴影。_
+_同一个模型、视角与姿态。左侧为原材质；右侧开启三段色阶、钢笔描边、背景笔触、动画阴影，以及 50% 胶片颗粒和 50% 亚克力磨砂。_
 
 ## 这是做什么的？
 

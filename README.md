@@ -4,11 +4,11 @@
 
 Use three-tone lighting for characters, broad painted shading for scenery, and optional pen outlines, anime shadows and film texture. Keep your models, textures and animations; choose the effects that suit your scene.
 
-[**Try a model**](https://xymeow.github.io/three-anime-style/) · [**Compare effects**](https://xymeow.github.io/three-anime-style/?scene=robot&palette=ice&compare=shadows) · [中文](README.zh-CN.md)
+[**Try a model**](https://xymeow.github.io/three-anime-style/) · [**Compare effects**](https://xymeow.github.io/three-anime-style/?scene=robot&palette=neutral&compare=source) · [中文](README.zh-CN.md)
 
-![Ordinary cast shadows on the left, abstract anime shadows on the right](docs/shadow-comparison.png)
+![Original Three.js materials on the left; the complete anime rendering on the right](docs/rendering-comparison.png)
 
-_Same model, camera and pose. The comparison lab lets you switch lighting, outlines, brushwork and shadows independently._
+_Same model, camera and pose. Left: original materials. Right: three-tone shading, pen outlines, background brushwork, anime shadows, 50% film grain and 50% acrylic frost._
 
 ## What is this?
 
