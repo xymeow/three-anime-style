@@ -1,224 +1,104 @@
-# Three Ink
+# Anime Style for Three.js
 
-Three-tone lighting, painted scenery, pen-like outlines, film grain and frosted acrylic for Three.js.
+**An open-source rendering library that gives existing Three.js scenes an anime look.**
 
-[Live playground](https://xymeow.github.io/three-ink/) · [Style lab](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows) · [中文说明](README.zh-CN.md) · [Agent skill](skills/three-ink/SKILL.md)
+Use three-tone lighting for characters, broad painted shading for scenery, and optional pen outlines, anime shadows and film texture. Keep your models, textures and animations; choose the effects that suit your scene.
 
-Turn standard Three.js models into an illustrated scene without rebuilding their geometry or animation. The material adapter and post-processing pass work independently: use the tones alone, the texture alone, or both.
+[**Try a model**](https://xymeow.github.io/three-anime-style/) · [**Compare effects**](https://xymeow.github.io/three-anime-style/lab.html?scene=robot&palette=ice&compare=shadows) · [中文](README.zh-CN.md)
 
-![Three Ink playground](docs/playground.png)
+![Ordinary cast shadows on the left, abstract anime shadows on the right](docs/shadow-comparison.png)
 
-## Run the playground
+_Same model, camera and pose. The comparison lab lets you switch lighting, outlines, brushwork and shadows independently._
+
+## What is this?
+
+A TypeScript library for **Three.js r186 + WebGLRenderer**, with browser demos and a portable AI-agent integration skill. Add it to a Three.js app, or drop an embedded GLB into the playground to see what it does.
+
+| Part                       | What it changes                                                         |
+| -------------------------- | ----------------------------------------------------------------------- |
+| Character shading          | Three light/shadow bands, with optional highlights inside the dark band |
+| Painted scenery            | Broad, fixed brush marks shape the lighting on walls, rocks and ground  |
+| Outlines and anime shadows | Pen-like contours and a subtle offset shadow behind selected characters |
+| Image finish               | Independently adjustable film grain and frosted acrylic texture         |
+| Animation timing           | Optional 12 fps poses while the camera and rendering stay smooth        |
+
+The material adapter and post-processing pass work independently. The flat contact shadow shown in the lab is an application example, ready to adapt to your stage.
+
+## Try it first
+
+- **[Playground](https://xymeow.github.io/three-anime-style/):** six examples, local GLB import, effect controls, PNG and settings export. Start with Original → Cel → Paint → Ink + film.
+- **[Comparison lab](https://xymeow.github.io/three-anime-style/lab.html):** terrain, canyon, architecture, geometric forms and three animated characters; six palettes; synchronized before/after views.
+
+Run both locally:
 
 ```sh
-git clone https://github.com/xymeow/three-ink.git
-cd three-ink
+git clone https://github.com/xymeow/three-anime-style.git
+cd three-anime-style
 npm ci
 npm run dev
 ```
 
-Drop an embedded `.glb` into the viewport, switch between Original / Cel / Paint / Ink + film, and export a PNG or settings JSON. The default finish uses 50% acrylic. Six built-in examples cover a procedural courtyard, lighthouse coast, studio robot, Microsoft’s Avocado, the animated Fox and a skinning/morph fixture. The original procedural scenes are MIT licensed. Avocado is CC0; Fox combines CC0 and CC BY 4.0 assets. See [model credits](public/ATTRIBUTION.md). The viewer opens files locally and blocks external asset URLs.
+Open the Vite URL for the playground, or `/lab.html` for comparisons. Development requires Node 20.19+. Imported GLBs stay in the browser; the playground accepts embedded assets and blocks external asset URLs.
 
-## Style lab
+## Add it to your app
 
-[Open the synchronized comparison lab](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows). Four procedural environments, three animated characters and six palettes isolate broad brushwork, mesh style, cel shadows and post effects. Compare original/cel, brushwork off/on, or computed/cel shadows with the same camera and animation pose. The three licensed characters keep their [own credits](public/lab-models/CREDITS.md).
-
-## Install in your project
-
-Requires **Three.js r186**, **WebGLRenderer** and a bundler. This version patches Three.js shader chunks, so the peer dependency stays within r186. Node 20.19+ is required for development.
+Install the tagged Git package; it is not published to npm yet:
 
 ```sh
-npm install three@0.186.0 github:xymeow/three-ink#v0.3.0
+npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.0
 ```
 
-The Git dependency builds the package during installation. It is not published to npm yet.
-
-## Use
+The Git install builds the library and TypeScript declarations. Start with the material effect:
 
 ```ts
-import { applyInk, InkPass, steppedTime } from "@xymeow/three-ink";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { applyInk } from "@xymeow/three-anime-style";
 
-// renderer, scene, camera and model come from your existing Three.js app.
-const binding = applyInk(model, {
-  thresholds: [0.51, 0.785],
-  shadow: "#514f73",
-  mid: "#c1c4c9",
-  light: "#fff5df",
-});
-scene.add(model);
+// model is an Object3D or loaded glTF scene in your existing lit scene.
+const style = applyInk(model);
 
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const ink = new InkPass(scene, camera, {
-  penWidth: 1.1,
-  grain: 0.5,
-  acrylic: 0.5,
-  pixelRatio: renderer.getPixelRatio(),
-});
-composer.addPass(ink);
-composer.addPass(new OutputPass());
-
-let previous = 0;
-renderer.setAnimationLoop((milliseconds) => {
-  const seconds = milliseconds / 1000;
-  const delta = previous ? seconds - previous : 0;
-  previous = seconds;
-  // If your model has an AnimationMixer:
-  // mixer.setTime(steppedTime(seconds, 12));
-  // Update camera controls at display refresh rate.
-  composer.render(delta);
-});
-
-function resize(width: number, height: number) {
-  renderer.setSize(width, height);
-  composer.setSize(width, height);
-  camera.aspect = width / height; // PerspectiveCamera
-  camera.updateProjectionMatrix();
-}
-
-// If your app changes device pixel ratio:
-function setPixelRatio(ratio: number) {
-  renderer.setPixelRatio(ratio);
-  composer.setPixelRatio(ratio);
-  ink.configure({ pixelRatio: ratio });
-}
-
-// When removing this effect:
-function disposeInk() {
-  binding.dispose(); // restores original materials
-  composer.removePass(ink);
-  ink.dispose();
-}
+style.setEnabled(false); // compare with the original materials
+style.setEnabled(true); // restore the anime shading
+// When removing the effect: style.dispose();
 ```
 
-Keep your existing composer if you already have one. Place `InkPass` after the scene render and before the final `OutputPass`; don't add a second renderer or animation loop. Start with one directional light and modest ambient light. Each direct light gets a three-tone ramp; multiple lights, shadows, textures and ambient light can produce additional final colors.
+For outlines and texture, insert `InkPass` after your scene render and before the final `OutputPass`. Use your existing composer and animation loop.
 
-## API
+**[Full integration example →](docs/integration.md)** includes the composer, animation timing, resizing and cleanup. **[API reference →](docs/api.md)** covers painted backgrounds, shadow controls, defaults and resource ownership.
 
-### `applyInk(root, options?)`
+### Will my model work?
 
-Recursively adapts supported mesh materials to `MeshToonMaterial`. Material arrays and shared materials are preserved; textures, geometry, skinning, morph targets and instance data remain owned by the app.
+Common opaque and alpha-cutout materials, skeletal animation, morph targets and instanced meshes are supported. PBR materials become toon lighting; source textures and geometry remain owned by your app.
 
-| Option       | Default         | Meaning                                                             |
-| ------------ | --------------- | ------------------------------------------------------------------- |
-| `thresholds` | `[0.51, 0.785]` | Increasing thresholds in half-Lambert space: `dot(N,L) * 0.5 + 0.5` |
-| `shadow`     | `'#514f73'`     | Shadow-band light multiplier                                        |
-| `mid`        | `'#c1c4c9'`     | Middle-band light multiplier                                        |
-| `light`      | `'#fff5df'`     | Lit-band light multiplier                                           |
+Glass, blended transparency and custom shaders keep their original materials and appear in `style.skipped`. The current renderer uses WebGL shader chunks and standard depth. See the [compatibility table](docs/api.md#compatibility) before integrating WebGPU, custom rendering pipelines or glass-heavy scenes.
 
-Returns a binding with `materials`, `skipped`, `setEnabled(boolean)` and `dispose()`. Inspect `skipped` to show per-object/material reasons. `setEnabled(false)` restores source material references for comparison. `dispose()` is idempotent and disposes only materials created by the binding. Later replacements made by your app are respected. Dispose before applying again to the same meshes.
+## Use with an AI coding agent
 
-The adapter snapshots material properties when called. To adopt later source-material changes, dispose and reapply. Changes to shared texture content continue to work.
-
-### Painted scenery
-
-Use continuous painted lighting on scenery while keeping three bands on the foreground subject. The brush atlas contains 32 sparse, wide marks. Triplanar world-space sampling varies the lighting around midtones, with no UV requirement or animated noise. It stays fixed as the camera moves. Use it for static walls, rocks, hills and ground; moving objects travel through the world-space pattern.
-
-```ts
-import { applyInk, createBrushTexture } from "@xymeow/three-ink";
-
-const brush = createBrushTexture(); // browser canvas; caller owns texture
-const binding = applyInk(model, {
-  paint: {
-    map: brush,
-    strength: 0.7,
-    scale: 0.24, // atlas repeats per world unit; lower = larger marks
-    select: (mesh) => mesh.userData.inkPaint === true,
-  },
-});
-binding.setPaint({ strength: 0.9, scale: 0.18 });
-// On teardown: binding.dispose(); brush.dispose();
-```
-
-Omit `select` to paint every supported mesh in the binding. Omit `paint` to keep the original three-tone behavior. Strength `0` removes brush modulation while retaining smooth scenery lighting. The subject/scenery split works even when meshes share a source material. `setPaint` changes shared uniforms without recompiling shaders.
-
-`createBrushTexture(seed = 517)` requires a browser canvas. In other environments, provide your own repeat-wrapped, linear grayscale texture with a neutral value of 128/255. Texture creation is never performed during module import. The binding does not dispose the supplied brush map.
-
-In the playground, **Cel** disables brush modulation, **Paint** shows the brushwork without post-processing, and **Ink + film** adds contours, grain and frost. All three keep the selected scenery on continuous shading and subjects on three-tone lighting. Brush strength and size are independent from grain and acrylic. Example links accept `?example=courtyard`, `lighthouse`, `robot`, `avocado`, `fox` or `fixture`. Fox exposes Survey, Walk and Run individually.
-
-### `new InkPass(scene, camera, options?)`
-
-Uses a depth/object-ID render for contours, then a full-screen pass for ink, grain and acrylic. Supports perspective and orthographic cameras. Outlines follow object/material boundaries and depth discontinuities; they do not draw every crease on a continuous surface. Separate instances in one `InstancedMesh` share an ID, with depth edges providing separation.
-
-| Option       | Default     | Meaning                                                             |
-| ------------ | ----------- | ------------------------------------------------------------------- |
-| `penWidth`   | `1.1`       | Outline sample radius in CSS pixels; `0` skips the auxiliary render |
-| `penColor`   | `'#272333'` | Ink color                                                           |
-| `grain`      | `0.5`       | Film grain strength, `0..1`; refreshed at 24 Hz                     |
-| `acrylic`    | `0.5`       | Fixed screen-space grain, slight scatter and milky tint, `0..1`     |
-| `pixelRatio` | `1`         | Match the renderer to keep pen and grain sizes stable               |
-
-Use `configure(options)` to update the finish. Set `enabled = false` to bypass the pass. Call `reset()` after removing/replacing models to release cached ID materials. Call `dispose()` when removing the pass. A composer calls `setSize()` automatically.
-
-The acrylic effect is a surface finish over the rendered image, rather than a glass material that refracts objects behind it. Grain is independent from lighting and does not perturb mesh geometry. The pass preserves the source alpha channel; its two-sided silhouette sampling is most predictable on an opaque scene background.
-
-### `steppedTime(seconds, fps = 12)`
-
-Quantizes absolute animation time. Pass `0` for smooth motion. Use it for object poses or `AnimationMixer.setTime()` while letting the renderer and camera controls run normally. It does not limit rendering FPS.
-
-## Compatibility
-
-| Feature                                                                   | v0.2                                                                                            |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Standard / Physical / Phong / Lambert / Basic / Toon materials            | Converted; PBR metalness, roughness, clearcoat and environment reflections become toon lighting |
-| Base color maps, vertex colors, normal/bump maps, emissive, alpha cutouts | Preserved where supported by MeshToonMaterial                                                   |
-| Skinned meshes, morph targets, instanced meshes                           | Native Three.js deformation remains intact                                                      |
-| Blended transparency, transmission, custom ShaderMaterial                 | Kept original and reported; omitted from the contour buffer                                     |
-| Missing vertex normals                                                    | Kept original and reported                                                                      |
-| Material `onBeforeCompile` customizations                                 | Not migrated; use an app-specific adapter for these                                             |
-| WebGPU / TSL, logarithmic or reversed depth                               | Not supported in v0.2                                                                           |
-| WebXR, stencil-mask composers, custom per-object render callbacks         | Outside the tested pipeline                                                                     |
-
-Transparent surfaces don't occlude the contour buffer. The default pass processes the full scene. For scenes needing glass-aware contours or per-object effect masks, use a separate render layer/compositing design. Custom callbacks that mutate materials during rendering also need an application-specific integration.
-
-The playground loads embedded GLB assets without Draco or KTX2. You can use your own fully configured GLTFLoader in an app and pass the loaded scene to `applyInk`.
-
-## For AI agents
-
-The repository includes a portable [Three Ink skill](skills/three-ink/SKILL.md). Copy `skills/three-ink/` into your project's `.agents/skills/three-ink/` or your agent's supported skill directory. For example, from the root of the consuming project:
+Copy the portable skill from this repository into your consuming project's skill directory:
 
 ```sh
 mkdir -p .agents/skills
-cp -R /path/to/three-ink/skills/three-ink .agents/skills/three-ink
+cp -R /path/to/three-anime-style/skills/three-anime-style .agents/skills/
 ```
 
-Then ask: **“Use $three-ink to add three-tone shading and a 50% frosted finish to this scene. Keep the existing animation and add an original/effect toggle.”**
+Then ask:
 
-The skill covers integration, ownership, compatibility, color management and checks. `AGENTS.md` covers contributing to the library itself.
+> Use $three-anime-style to add anime shading to this Three.js scene. Preserve its models and animation, reuse its render loop, and add an original/effect toggle. Start with clean cel shading; make brushwork, shadows and film texture adjustable.
 
-## Development
+The [skill](skills/three-anime-style/SKILL.md) gives agents the integration sequence, compatibility checks and teardown rules. It works with agents that support `SKILL.md`; other agents can read the file directly. Contributors to this library should start with [AGENTS.md](AGENTS.md).
+
+## Upgrading from Three Ink
+
+The project was previously named **Three Ink**. Starting with v0.4.0, install `github:xymeow/three-anime-style#v0.4.0` and change imports from `@xymeow/three-ink` to `@xymeow/three-anime-style`. Remove the old dependency once imports are migrated. The exported names (`applyInk`, `InkPass`, `createBrushTexture`, `steppedTime`) and rendering behavior are unchanged. Replace the old skill folder with `skills/three-anime-style` to use the new invocation name.
+
+## Development and credits
 
 ```sh
 npm run check
 npm test
 npm run build:demo
-node scripts/create-fixture.mjs  # regenerate the original test GLB
+npm run format:check
 ```
 
-Tests cover ownership, restoration, unsupported materials, animation data, shader patch compatibility and exception-safe render-state restoration. Browser checks exercise the procedural robot and the skinned/morph GLB. The production demo is emitted to `site-dist/`, the library and declarations to `dist/`.
+The library builds to `dist/`; both demos build to `site-dist/`. For changes to outlines or shadow masks, also open `/tests/gpu.html` through Vite for real WebGL regression checks. Regenerate the original animated test model with `node scripts/create-fixture.mjs`.
 
-Inspired by our [Orbitals rendering study and experiment](https://xymeow.github.io/post/orbitals-cel-shading-experiment/). This repository contains original implementation and procedural assets, with no game assets or game source code.
-
-Code and original scenes: MIT © 2026 xymeow. Third-party model licenses are listed in [model credits](public/ATTRIBUTION.md).
-
-### Cel shadow controls
-
-Version 0.3.0 adds opt-in cel shadows:
-
-```ts
-const binding = applyInk(model, { shadowHighlight: 0.65 });
-binding.setShadowHighlight(0.4); // 0..1; default 0, cel materials only
-const ink = new InkPass(scene, camera, {
-  celShadow: 0.45, // 0..1; default 0
-  celShadowSelect: (mesh) => mesh.userData.inkCel === true,
-});
-```
-
-`shadowHighlight` adds a restrained view-dependent reflected rim inside the dark band. `celShadow` offsets the selected foreground silhouette by 2.5 CSS pixels, blends its edge, and darkens the background slightly. Depth prevents leakage through nearer surfaces. It works even with `penWidth: 0`; the same ID/depth render is reused when outlines are on. Transparent/transmissive/custom shader surfaces keep the existing contour-buffer limitations.
-
-The lab's animation-shadow mode also disables the character's computed casting and receiving shadows and uses an abstract flat contact patch. That app-owned patch lives in `lab/contact-shadow.ts`, assumes the stage is at y=0, and follows the hips where available. For uneven terrain, the host app must place/orient/project a decal onto its receiving surface. The pass itself does not change any light or `castShadow` setting.
-
-Contours now reject continuous projected-depth slopes while keeping object/material boundaries and same-mesh occlusions. Run the real WebGL regression at `/tests/gpu.html` after starting Vite; it compares the former depth rule with the fix on perspective and orthographic planes and checks occlusion and cel masks.
+Inspired by [our Orbitals rendering study](https://xymeow.github.io/post/orbitals-cel-shading-experiment/). Code and original scenes are MIT licensed. Included third-party models retain their own licenses: [playground credits](public/ATTRIBUTION.md) · [lab credits](public/lab-models/CREDITS.md).

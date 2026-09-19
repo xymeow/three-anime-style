@@ -1,0 +1,4 @@
+interface:
+  display_name: "Anime Style for Three.js"
+  short_description: "Integrate anime shading into existing Three.js scenes"
+  default_prompt: "Use $three-anime-style to add clean anime shading to this Three.js scene, preserve its animation, and add an original/effect toggle with adjustable outlines and texture."

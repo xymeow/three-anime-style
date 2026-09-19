@@ -2,7 +2,7 @@
 
 这组实验从本地对照页发展而来，已随 v0.3.0 发布，入口为 `lab.html`。
 
-[在线实验室](https://xymeow.github.io/three-ink/lab.html?scene=robot&palette=ice&compare=shadows)
+[在线实验室](https://xymeow.github.io/three-anime-style/lab.html?scene=robot&palette=ice&compare=shadows)
 
 ```sh
 npm ci

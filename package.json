@@ -1,13 +1,13 @@
 {
-  "name": "@xymeow/three-ink",
-  "version": "0.3.0",
-  "description": "Three-tone shading, pen outlines and frosted film for Three.js, with an agent integration skill.",
+  "name": "@xymeow/three-anime-style",
+  "version": "0.4.0",
+  "description": "Anime-style rendering for Three.js: cel shading, painted backgrounds, outlines and film effects. Browser demos and AI-agent integration skill included.",
   "type": "module",
   "license": "MIT",
   "author": "xymeow",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xymeow/three-ink.git"
+    "url": "https://github.com/xymeow/three-anime-style.git"
   },
   "exports": {
     ".": {
@@ -18,7 +18,9 @@
   "files": [
     "dist",
     "skills",
+    "docs",
     "README.md",
+    "README.zh-CN.md",
     "LICENSE"
   ],
   "sideEffects": false,
@@ -29,8 +31,8 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "build:demo": "vite build",
     "prepare": "npm run build",
-    "format": "prettier --write src demo lab lab.html vite.lab.config.ts tests scripts index.html vite.config.ts *.json *.md skills .github",
-    "format:check": "prettier --check src demo lab lab.html vite.lab.config.ts tests scripts index.html vite.config.ts *.json *.md skills .github",
+    "format": "prettier --write docs src demo lab lab.html vite.lab.config.ts tests scripts index.html vite.config.ts *.json *.md skills .github",
+    "format:check": "prettier --check docs src demo lab lab.html vite.lab.config.ts tests scripts index.html vite.config.ts *.json *.md skills .github",
     "build:lab": "vite build --config vite.lab.config.ts"
   },
   "peerDependencies": {
@@ -45,5 +47,15 @@
   },
   "engines": {
     "node": ">=20.19"
-  }
+  },
+  "homepage": "https://xymeow.github.io/three-anime-style/",
+  "keywords": [
+    "threejs",
+    "anime",
+    "cel-shading",
+    "toon-shading",
+    "shader",
+    "postprocessing",
+    "agent-skill"
+  ]
 }

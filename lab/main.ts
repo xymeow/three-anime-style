@@ -446,7 +446,7 @@ el("save").onclick = () => {
   );
   ctx.fillText(el("right-label").textContent!, a.width + 18, 34);
   const link = document.createElement("a");
-  link.download = `three-ink-${current}-${select("palette").value}.png`;
+  link.download = `three-anime-style-${current}-${select("palette").value}.png`;
   link.href = c.toDataURL();
   link.click();
 };

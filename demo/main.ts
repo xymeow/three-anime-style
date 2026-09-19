@@ -201,19 +201,19 @@ const examples = {
   robot: {
     name: "Studio robot",
     credit: "Original procedural model · MIT",
-    url: "https://github.com/xymeow/three-ink",
+    url: "https://github.com/xymeow/three-anime-style",
     factory: studioRobot,
   },
   courtyard: {
     name: "Sunlit courtyard",
     credit: "Original architectural scene · MIT",
-    url: "https://github.com/xymeow/three-ink",
+    url: "https://github.com/xymeow/three-anime-style",
     factory: courtyard,
   },
   lighthouse: {
     name: "Lighthouse coast",
     credit: "Original coastal scene · MIT",
-    url: "https://github.com/xymeow/three-ink",
+    url: "https://github.com/xymeow/three-anime-style",
     factory: lighthouse,
   },
   avocado: {
@@ -233,7 +233,7 @@ const examples = {
   fixture: {
     name: "Animation fixture",
     credit: "Original skinning + morph fixture · MIT",
-    url: "https://github.com/xymeow/three-ink",
+    url: "https://github.com/xymeow/three-anime-style",
     file: "animation-fixture.glb",
     stage: false,
   },
@@ -335,7 +335,7 @@ async function load(file: File) {
     }
     mount(withPaintedStage(gltf.scene), file.name, gltf.animations);
     markExample("");
-    credit("Local GLB · painted stage added by Three Ink");
+    credit("Local GLB · painted stage added by Anime Style for Three.js");
   } catch (e) {
     if (token === generation)
       status.textContent =
@@ -366,7 +366,7 @@ function download(url: string, name: string) {
 }
 $("capture").onclick = () => {
   composer.render(0);
-  download(renderer.domElement.toDataURL("image/png"), "three-ink.png");
+  download(renderer.domElement.toDataURL("image/png"), "three-anime-style.png");
 };
 $("export").onclick = () => {
   const blob = new Blob(
@@ -396,7 +396,7 @@ $("export").onclick = () => {
     { type: "application/json" },
   );
   const url = URL.createObjectURL(blob);
-  download(url, "three-ink.json");
+  download(url, "three-anime-style.json");
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 new ResizeObserver(() => {

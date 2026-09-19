@@ -1,6 +1,9 @@
-# Working on Three Ink
+# Working on Anime Style for Three.js
 
-- Read README.md for the public API and supported Three.js version.
+- Start with [README.md](README.md) for purpose, demos and supported Three.js version.
+- For application integration, use [the portable skill](skills/three-anime-style/SKILL.md) and [integration example](docs/integration.md). For exact options and limits, read [the API reference](docs/api.md).
+- Source map: `src/material.ts` adapts materials; `src/pass.ts` owns outlines/post effects; `src/brush.ts` creates brush textures; `src/clock.ts` samples animation time. `demo/` is the GLB playground; `lab/` is the synchronized comparison viewer.
+- `src/index.ts` is the public export surface. Keep examples, types, the skill and API documentation consistent when changing it.
 - Keep the material adapter, screen-space pass and animation sampling independent.
 - Never mutate or dispose caller-owned geometry, source materials or textures.
 - Restore all temporary material/renderer changes with try/finally, including failure paths.
