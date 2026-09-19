@@ -6,7 +6,7 @@ import {
   disposeRoot,
   type ViewerScene,
 } from "./catalog";
-import { createContactShadow } from "../lab/contact-shadow";
+import { ContactShadow } from "../lab/contact-shadow";
 import * as T from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -38,10 +38,8 @@ key.shadow.camera.bottom = -15;
 key.shadow.bias = -0.0003;
 key.shadow.normalBias = 0.08;
 scene.add(ambient, key, key.target);
-const contactShadow = createContactShadow();
-scene.add(contactShadow);
-const contactAnchor = new T.Vector3();
-let contactBone: T.Object3D | undefined;
+const contactShadow = new ContactShadow();
+scene.add(contactShadow.mesh);
 const ratio = Math.min(devicePixelRatio, 1.5);
 function pipeline(id: string) {
   const renderer = new T.WebGLRenderer({
@@ -98,8 +96,7 @@ function disposeFixture() {
   left.ink.reset();
   right.ink.reset();
   if (!fixture) return;
-  contactBone = undefined;
-  contactShadow.visible = false;
+  contactShadow.reset();
   mixer?.stopAllAction();
   mixer?.uncacheRoot(fixture.root);
   mixer = undefined;
@@ -124,6 +121,7 @@ function updateLight() {
 }
 function restyle() {
   if (!fixture) return;
+  contactShadow.reset();
   binding?.dispose();
   left.ink.reset();
   right.ink.reset();
@@ -262,10 +260,6 @@ async function choose(name: string, file?: File) {
         (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3;
       if (!m.geometry.attributes.normal) m.geometry.computeVertexNormals();
       if (!m.userData.inkPaint) m.userData.inkCel = true;
-      if (next.character && !contactBone && (o as T.SkinnedMesh).isSkinnedMesh)
-        contactBone = (o as T.SkinnedMesh).skeleton.bones.find((b) =>
-          /hips|pelvis/i.test(b.name),
-        );
       m.castShadow = true;
       m.receiveShadow = true;
       shadowFlags.set(m, { cast: m.castShadow, receive: m.receiveShadow });
@@ -507,21 +501,12 @@ function configureShadowStyle(stylized: boolean) {
       mesh.receiveShadow = original.receive && !(anime && mesh.userData.inkCel);
     }
   });
-  contactShadow.visible = Boolean(
-    anime && fixture?.character && input("contact-shadow").checked,
+  contactShadow.mesh.visible = Boolean(
+    anime &&
+      fixture.character &&
+      input("contact-shadow").checked &&
+      contactShadow.ready,
   );
-  if (contactShadow.visible) {
-    contactAnchor.set(0, 0, 0);
-    contactBone?.getWorldPosition(contactAnchor);
-    contactShadow.position.set(
-      contactAnchor.x,
-      fixture.contactY + 0.012,
-      contactAnchor.z,
-    );
-    contactShadow.material.uniforms.color.value.set(
-      palettes[select("palette").value].ink,
-    );
-  }
 }
 let previous = performance.now();
 function frame(now: number) {
@@ -554,6 +539,30 @@ function frame(now: number) {
     acrylic: value("frost") / 100,
     penColor: p.ink,
   };
+  if (anime && fixture?.character && input("contact-shadow").checked) {
+    binding.setEnabled(false);
+    try {
+      if (brushMode)
+        contactShadow.update(
+          left.renderer,
+          scene,
+          fixture.root,
+          key,
+          fixture.contactY,
+          p.ink,
+        );
+      contactShadow.update(
+        right.renderer,
+        scene,
+        fixture.root,
+        key,
+        fixture.contactY,
+        p.ink,
+      );
+    } finally {
+      binding.setEnabled(true);
+    }
+  }
   try {
     configureShadowStyle(brushMode && styled);
     binding.setEnabled(brushMode || select("compare").value === "shadows");

@@ -1,6 +1,6 @@
 {
   "name": "@xymeow/three-anime-style",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Anime-style rendering for Three.js: cel shading, painted backgrounds, outlines and film effects. Browser demos and AI-agent integration skill included.",
   "type": "module",
   "license": "MIT",
