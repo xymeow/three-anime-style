@@ -5,3 +5,12 @@ site-dist/
 *.log
 *.tgz
 lab-dist/
+
+# Local credentials never belong in the library or static playground.
+.env
+.env.*
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx

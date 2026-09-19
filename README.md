@@ -39,7 +39,9 @@ npm ci
 npm run dev
 ```
 
-Open the Vite URL for the unified playground. Development requires Node 20.19+. Imported GLBs stay in the browser; the playground accepts embedded assets and blocks external asset URLs.
+Open the Vite URL for the unified playground. Development requires Node 20.19+. The local and hosted versions use the same code. No deployment to the author's website, account, backend or API key is required. After installing dependencies, the bundled examples and embedded GLBs work offline.
+
+Imported GLBs stay in the browser and are not uploaded; the playground accepts embedded assets and blocks external asset URLs. You can also self-host the `site-dist/` output from `npm run build:demo`.
 
 ## Add it to your app
 
@@ -102,4 +104,4 @@ npm run format:check
 
 The library builds to `dist/`; the unified viewer builds to `site-dist/`. For changes to outlines or shadow masks, also open `/tests/gpu.html` through Vite for real WebGL regression checks. Regenerate the original animated test model with `node scripts/create-fixture.mjs`.
 
-Inspired by [our Orbitals rendering study](https://xymeow.github.io/post/orbitals-cel-shading-experiment/). Code and original scenes are MIT licensed. Included third-party models retain their own licenses: [playground credits](public/ATTRIBUTION.md) · [lab credits](public/lab-models/CREDITS.md).
+Inspired by [Shapefarm’s Orbitals rendering article](https://www.unrealengine.com/tech-blog/stepping-inside-a-retro-anime-inspired-game-a-look-into-the-rendering-of-orbitals). Code and original scenes are MIT licensed. Included third-party models retain their own licenses: [playground credits](public/ATTRIBUTION.md) · [lab credits](public/lab-models/CREDITS.md).

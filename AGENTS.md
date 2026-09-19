@@ -14,3 +14,4 @@
 - Run npm run check, npm test, npm run build:demo and npm run format:check.
 - Check Original, Cel and Ink + film in the browser and load the animation fixture when changing shaders.
 - Use only original or appropriately licensed assets, with attribution where required.
+- The playground is a local-first static app: no accounts, backend, API keys or model uploads. Keep imported models in the browser. Never add local credentials, private filesystem paths or personal contact details to source, examples or build output.
