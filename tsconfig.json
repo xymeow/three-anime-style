@@ -9,5 +9,5 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "demo"]
+  "include": ["src", "demo", "lab"]
 }

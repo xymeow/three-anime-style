@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Three Ink · 本地风格实验室</title>
+    <link rel="stylesheet" href="/lab/style.css" />
+  </head>
+  <body>
+    <header>
+      <strong>three ink <small> / local lab</small></strong
+      ><span>仅本地实验 · 未发布</span><a href="/">原版预览 ↗</a>
+    </header>
+    <main>
+      <div class="intro">
+        <h1>把笔触、模型和颜色拆开看。</h1>
+        <p id="note">同一视角、同一动画姿态的左右对照。</p>
+      </div>
+      <nav id="examples">
+        <button data-scene="terrain">山地</button
+        ><button data-scene="cliffs">峡谷</button
+        ><button data-scene="hall">长廊</button
+        ><button data-scene="forms">几何体</button
+        ><button data-scene="cesium">贴图人物</button
+        ><button data-scene="quaternius">低模人物</button
+        ><button data-scene="robot">表情机器人</button>
+      </nav>
+      <div class="layout">
+        <section>
+          <div class="views" id="views">
+            <div class="view" id="left">
+              <span id="left-label">无笔触</span>
+            </div>
+            <div class="view" id="right">
+              <span id="right-label">有笔触</span>
+            </div>
+          </div>
+          <div class="under">
+            <span>拖动任一侧同步旋转 · 滚轮缩放</span
+            ><button id="fit">重新取景</button
+            ><button id="face" hidden>面部特写</button
+            ><button id="pause">暂停动画</button
+            ><button id="save">保存对照图</button>
+          </div>
+          <p id="stats" role="status"></p>
+          <p id="credit"></p>
+        </section>
+        <aside>
+          <label
+            >对照方式<select id="compare">
+              <option value="brush">只比较背景笔触</option>
+              <option value="source">原材质 / 三渲二</option>
+            </select></label
+          >
+          <label
+            >场景与光照配色<select id="palette">
+              <option value="neutral">中性日光</option>
+              <option value="canyon">朱砂 / 靛蓝</option>
+              <option value="pop">高饱和 / 宝蓝</option>
+              <option value="ice">冰蓝 / 紫色</option>
+              <option value="paper">黑白墨稿</option>
+              <option value="legacy">线上暖灰</option>
+            </select></label
+          >
+          <p class="hint">人物默认保留原贴图；配色改变背景与光照。</p>
+          <label
+            >建模 / 表面<select id="shape">
+              <option value="smooth">平滑曲面</option>
+              <option value="faceted">低多边形 / 分面</option>
+            </select></label
+          >
+          <label class="check"
+            ><input type="checkbox" id="shadows" />投射阴影</label
+          ><label id="expression-row" hidden
+            >表情<select id="expression">
+              <option value="">原表情</option>
+              <option>Angry</option>
+              <option>Surprised</option>
+              <option>Sad</option>
+            </select></label
+          ><label class="check"
+            ><input type="checkbox" id="clay" />人物去贴图，观察纯光照</label
+          >
+          <label
+            >背景笔触 <output id="paint-out">100%</output
+            ><input id="paint" type="range" min="0" max="100" value="100"
+          /></label>
+          <label
+            >笔刷大小 <output id="size-out">1.0×</output
+            ><input id="size" type="range" min="50" max="300" value="100"
+          /></label>
+          <label
+            >光照方向
+            <input id="light" type="range" min="-180" max="180" value="-65"
+          /></label>
+          <details open>
+            <summary>表面效果</summary>
+            <label
+              >钢笔描边 <output id="pen-out">0 px</output
+              ><input id="pen" type="range" min="0" max="30" value="0" /></label
+            ><label
+              >胶片颗粒 <output id="grain-out">0%</output
+              ><input
+                id="grain"
+                type="range"
+                min="0"
+                max="100"
+                value="0" /></label
+            ><label
+              >磨砂 <output id="frost-out">0%</output
+              ><input
+                id="frost"
+                type="range"
+                min="0"
+                max="100"
+                value="0" /></label
+            ><button id="finish">套用线上 50% 磨砂</button
+            ><button id="clean">清除表面效果</button>
+          </details>
+          <label
+            >动画节奏<select id="fps">
+              <option value="12">12 帧姿态</option>
+              <option value="0">流畅动作</option>
+            </select></label
+          ><label id="clip-row" hidden>动作<select id="clip"></select></label>
+        </aside>
+      </div>
+    </main>
+    <script type="module" src="/lab/main.ts"></script>
+  </body>
+</html>
