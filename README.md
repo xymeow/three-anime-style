@@ -4,7 +4,7 @@
 
 Use three-tone lighting for characters, broad painted shading for scenery, and optional pen outlines, anime shadows and film texture. Keep your models, textures and animations; choose the effects that suit your scene.
 
-[**Try a model**](https://xymeow.github.io/three-anime-style/) · [**Compare effects**](https://xymeow.github.io/three-anime-style/lab.html?scene=robot&palette=ice&compare=shadows) · [中文](README.zh-CN.md)
+[**Try a model**](https://xymeow.github.io/three-anime-style/) · [**Compare effects**](https://xymeow.github.io/three-anime-style/?scene=robot&palette=ice&compare=shadows) · [中文](README.zh-CN.md)
 
 ![Ordinary cast shadows on the left, abstract anime shadows on the right](docs/shadow-comparison.png)
 
@@ -26,10 +26,11 @@ The material adapter and post-processing pass work independently. The flat conta
 
 ## Try it first
 
-- **[Playground](https://xymeow.github.io/three-anime-style/):** six examples, local GLB import, effect controls, PNG and settings export. Start with Original → Cel → Paint → Ink + film.
-- **[Comparison lab](https://xymeow.github.io/three-anime-style/lab.html):** terrain, canyon, architecture, geometric forms and three animated characters; six palettes; synchronized before/after views.
+**[One playground](https://xymeow.github.io/three-anime-style/)** includes all 13 examples: architecture, terrain, props, animated characters and the skinning/morph fixture. Import an embedded GLB, try six palettes, compare source materials, brushwork or shadows, then export a PNG or settings JSON. Every model uses the same rendering and anime-shadow controls.
 
-Run both locally:
+Old `?example=fixture` links still open the original model. `lab.html` redirects to this viewer with its scene, palette and comparison settings intact.
+
+Run locally:
 
 ```sh
 git clone https://github.com/xymeow/three-anime-style.git
@@ -38,14 +39,14 @@ npm ci
 npm run dev
 ```
 
-Open the Vite URL for the playground, or `/lab.html` for comparisons. Development requires Node 20.19+. Imported GLBs stay in the browser; the playground accepts embedded assets and blocks external asset URLs.
+Open the Vite URL for the unified playground. Development requires Node 20.19+. Imported GLBs stay in the browser; the playground accepts embedded assets and blocks external asset URLs.
 
 ## Add it to your app
 
 Install the tagged Git package; it is not published to npm yet:
 
 ```sh
-npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.0
+npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.1
 ```
 
 The Git install builds the library and TypeScript declarations. Start with the material effect:
@@ -88,7 +89,7 @@ The [skill](skills/three-anime-style/SKILL.md) gives agents the integration sequ
 
 ## Upgrading from Three Ink
 
-The project was previously named **Three Ink**. Starting with v0.4.0, install `github:xymeow/three-anime-style#v0.4.0` and change imports from `@xymeow/three-ink` to `@xymeow/three-anime-style`. Remove the old dependency once imports are migrated. The exported names (`applyInk`, `InkPass`, `createBrushTexture`, `steppedTime`) and rendering behavior are unchanged. Replace the old skill folder with `skills/three-anime-style` to use the new invocation name.
+The project was previously named **Three Ink**. Starting with v0.4.0, install `github:xymeow/three-anime-style#v0.4.1` and change imports from `@xymeow/three-ink` to `@xymeow/three-anime-style`. Remove the old dependency once imports are migrated. The exported names (`applyInk`, `InkPass`, `createBrushTexture`, `steppedTime`) and rendering behavior are unchanged. Replace the old skill folder with `skills/three-anime-style` to use the new invocation name.
 
 ## Development and credits
 
@@ -99,6 +100,6 @@ npm run build:demo
 npm run format:check
 ```
 
-The library builds to `dist/`; both demos build to `site-dist/`. For changes to outlines or shadow masks, also open `/tests/gpu.html` through Vite for real WebGL regression checks. Regenerate the original animated test model with `node scripts/create-fixture.mjs`.
+The library builds to `dist/`; the unified viewer builds to `site-dist/`. For changes to outlines or shadow masks, also open `/tests/gpu.html` through Vite for real WebGL regression checks. Regenerate the original animated test model with `node scripts/create-fixture.mjs`.
 
 Inspired by [our Orbitals rendering study](https://xymeow.github.io/post/orbitals-cel-shading-experiment/). Code and original scenes are MIT licensed. Included third-party models retain their own licenses: [playground credits](public/ATTRIBUTION.md) · [lab credits](public/lab-models/CREDITS.md).

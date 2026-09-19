@@ -1,124 +1,176 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Anime Style for Three.js — interactive playground</title>
+    <title>Anime Style for Three.js · 动画风渲染试玩</title>
     <link rel="stylesheet" href="/demo/style.css" />
   </head>
   <body>
+    <header>
+      <strong>anime style <small> / playground</small></strong
+      ><span>Three.js 动画风渲染 · v0.4.1</span
+      ><a href="https://github.com/xymeow/three-anime-style"
+        >GitHub / 接入文档 ↗</a
+      >
+    </header>
     <main>
-      <header>
-        <a class="wordmark" href="https://github.com/xymeow/three-anime-style"
-          >anime style<span> / playground</span></a
-        ><span class="edition">ANIME RENDERING FOR THREE.JS</span
-        ><a href="https://github.com/xymeow/three-anime-style">Source ↗</a
-        ><a href="./lab.html?scene=robot&amp;palette=ice&amp;compare=shadows"
-          >Style lab ↗</a
-        >
-      </header>
-      <section class="intro">
-        <div>
-          <p class="eyebrow">CEL SHADING · PAINTED SCENERY</p>
-          <h1>Give your 3D scene an anime look.</h1>
-        </div>
-        <p>
-          Drop a GLB into the scene. Try cel shading, painted backgrounds,
-          outlines and film texture — each effect is adjustable.
-        </p>
-      </section>
-      <nav class="examples" aria-label="Example scenes">
-        <button data-example="courtyard">01 · Courtyard</button
-        ><button data-example="lighthouse">02 · Lighthouse</button
-        ><button data-example="robot">03 · Robot</button
-        ><button data-example="avocado">04 · Avocado</button
-        ><button data-example="fox">05 · Fox</button
-        ><button data-example="fixture">06 · Animation test</button>
-      </nav>
-      <div class="example-credit">
-        <a id="credit" target="_blank" rel="noreferrer"></a
-        ><a
-          href="https://github.com/xymeow/three-anime-style/blob/main/public/ATTRIBUTION.md"
-          target="_blank"
-          >Asset credits ↗</a
-        >
+      <div class="intro">
+        <h1>把笔触、模型和颜色拆开看。</h1>
+        <p id="note">同一视角、同一动画姿态的左右对照。</p>
       </div>
-      <section class="workbench">
-        <div id="viewport">
-          <div class="scene-label">
-            <span class="dot"></span><span id="model-name">STUDIO ROBOT</span>
+      <nav id="examples" aria-label="示例模型与场景"></nav>
+      <div class="import-row">
+        <label>打开本地 GLB<input id="file" type="file" accept=".glb" /></label
+        ><span>也可拖入画面 · 文件仅在浏览器中读取</span>
+      </div>
+      <div class="layout">
+        <section>
+          <div class="views" id="views">
+            <div class="view" id="left">
+              <span id="left-label">无笔触</span>
+            </div>
+            <div class="view" id="right">
+              <span id="right-label">有笔触</span>
+            </div>
           </div>
-          <div class="view-footer">
-            <span>DRAG TO ORBIT · SCROLL TO ZOOM</span
-            ><button id="capture">Save image ↓</button>
+          <div class="under">
+            <span>拖动任一侧同步旋转 · 滚轮缩放</span
+            ><button id="fit">重新取景</button
+            ><button id="face" hidden>主体特写</button
+            ><button id="pause">暂停动画</button
+            ><button id="save">保存对照图</button
+            ><button id="export">导出参数</button>
           </div>
-          <div id="drop-hint">Drop your .glb here</div>
-        </div>
+          <p id="stats" role="status"></p>
+          <p id="credit"></p>
+        </section>
         <aside>
-          <p class="eyebrow">THE FINISH</p>
-          <div class="segmented">
-            <button data-mode="original">Original</button
-            ><button data-mode="cel">Cel</button
-            ><button data-mode="paint">Paint</button
-            ><button data-mode="ink" class="active">Ink + film</button>
-          </div>
           <label
-            >Scenery brushwork <output id="paint-value">70%</output
-            ><input id="paint" type="range" min="0" max="100" value="70"
-          /></label>
-          <label
-            >Brush size <output id="brush-size-value">1.0×</output
-            ><input id="brush-size" type="range" min="50" max="250" value="100"
-          /></label>
-          <p class="note brush-note">
-            Broad marks shape the scenery’s light. Choose Paint to see them
-            without film or frost.
-          </p>
-          <label
-            >Frosted acrylic <output id="acrylic-value">50%</output
-            ><input id="acrylic" type="range" min="0" max="100" value="50"
-          /></label>
-          <label
-            >Film grain <output id="grain-value">50%</output
-            ><input id="grain" type="range" min="0" max="100" value="50"
-          /></label>
-          <label
-            >Pen width <output id="pen-value">1.1 px</output
-            ><input id="pen" type="range" min="0" max="30" value="11"
-          /></label>
-          <label
-            >Animation
-            <select id="fps">
-              <option value="12">12 fps · stepped</option>
-              <option value="24">24 fps · stepped</option>
-              <option value="0">Smooth</option>
+            >渲染预设<select id="preset">
+              <option value="full">自定义 / 完整效果</option>
+              <option value="original">原材质 Original</option>
+              <option value="cel">干净色阶 Cel</option>
+              <option value="paint">背景笔触 Paint</option>
             </select></label
           >
-          <label id="motion-label" hidden
-            >Motion clip
-            <select id="motion"></select
-          ></label>
           <label
-            >Light direction
-            <input id="light" type="range" min="-180" max="180" value="-40"
+            >对照方式<select id="compare">
+              <option value="brush">只比较背景笔触</option>
+              <option value="source">原材质 / 三渲二</option>
+              <option value="shadows">普通投影 / 动画阴影</option>
+            </select></label
+          >
+          <label
+            >场景与光照配色<select id="palette">
+              <option value="neutral">中性日光</option>
+              <option value="canyon">朱砂 / 靛蓝</option>
+              <option value="pop">高饱和 / 宝蓝</option>
+              <option value="ice">冰蓝 / 紫色</option>
+              <option value="paper">黑白墨稿</option>
+              <option value="legacy">线上暖灰</option>
+            </select></label
+          >
+          <p class="hint">人物默认保留原贴图；配色改变背景与光照。</p>
+          <label
+            >建模 / 表面<select id="shape">
+              <option value="smooth">平滑曲面</option>
+              <option value="faceted">低多边形 / 分面</option>
+            </select></label
+          >
+          <label class="check"
+            ><input type="checkbox" id="shadows" />投射阴影</label
+          >
+          <section id="anime-options" hidden>
+            <label
+              >角色阴影<select id="shadow-mode">
+                <option value="anime">动画阴影</option>
+                <option value="standard">普通投影</option>
+              </select></label
+            >
+            <label class="check"
+              ><input
+                id="contact-shadow"
+                type="checkbox"
+                checked
+              />抽象接地影</label
+            >
+            <label class="check"
+              ><input
+                id="layer-shadow"
+                type="checkbox"
+                checked
+              />片层偏移影</label
+            >
+            <label class="check"
+              ><input
+                id="shadow-highlight"
+                type="checkbox"
+                checked
+              />暗部反光</label
+            >
+            <p class="hint">动画阴影关闭角色的计算投影；背景仍可保留投影。</p>
+          </section>
+          <label id="expression-row" hidden
+            >表情<select id="expression">
+              <option value="">原表情</option>
+              <option>Angry</option>
+              <option>Surprised</option>
+              <option>Sad</option>
+            </select></label
+          ><label class="check"
+            ><input type="checkbox" id="clay" />人物去贴图，观察纯光照</label
+          >
+          <label
+            >背景笔触 <output id="paint-out">100%</output
+            ><input id="paint" type="range" min="0" max="100" value="100"
           /></label>
-          <div class="divider"></div>
-          <p class="eyebrow">YOUR MODEL</p>
-          <label class="file-button"
-            >Open a .glb file <input id="file" type="file" accept=".glb" hidden
+          <label
+            >笔刷大小 <output id="size-out">1.0×</output
+            ><input id="size" type="range" min="50" max="300" value="100"
           /></label>
-          <p class="note">
-            Files stay in your browser. Embedded textures and standard materials
-            work best.
-          </p>
-          <div id="status" role="status" aria-live="polite"></div>
-          <button class="export" id="export">Export settings ↓</button>
+          <label
+            >光照方向
+            <input id="light" type="range" min="-180" max="180" value="-65"
+          /></label>
+          <details open>
+            <summary>表面效果</summary>
+            <label
+              >钢笔描边 <output id="pen-out">0 px</output
+              ><input
+                id="pen"
+                type="range"
+                min="0"
+                max="30"
+                value="11" /></label
+            ><label
+              >胶片颗粒 <output id="grain-out">0%</output
+              ><input
+                id="grain"
+                type="range"
+                min="0"
+                max="100"
+                value="0" /></label
+            ><label
+              >磨砂 <output id="frost-out">0%</output
+              ><input
+                id="frost"
+                type="range"
+                min="0"
+                max="100"
+                value="0" /></label
+            ><button id="finish">50% 胶片与磨砂</button
+            ><button id="clean">清除表面效果</button>
+          </details>
+          <label
+            >动画节奏<select id="fps">
+              <option value="12">12 帧姿态</option>
+              <option value="24">24 帧姿态</option>
+              <option value="0">流畅动作</option>
+            </select></label
+          ><label id="clip-row" hidden>动作<select id="clip"></select></label>
         </aside>
-      </section>
-      <footer>
-        <span>Built for Three.js · MIT licensed · Agent skill included</span
-        ><span>Material + outline + post-processing</span>
-      </footer>
+      </div>
     </main>
     <script type="module" src="/demo/main.ts"></script>
   </body>

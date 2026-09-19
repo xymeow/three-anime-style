@@ -4,7 +4,7 @@
 
 角色用三段色阶，背景用宽笔触塑造明暗，再按需要叠加钢笔描边、动画阴影、胶片颗粒和磨砂。模型、贴图和动画继续使用你自己的，各层效果可以单独调整。
 
-[**在线试玩**](https://xymeow.github.io/three-anime-style/) · [**左右对照实验室**](https://xymeow.github.io/three-anime-style/lab.html?scene=robot&palette=ice&compare=shadows) · [English](README.md)
+[**在线试玩**](https://xymeow.github.io/three-anime-style/) · [**左右对照实验室**](https://xymeow.github.io/three-anime-style/?scene=robot&palette=ice&compare=shadows) · [English](README.md)
 
 ![左边普通计算投影，右边抽象接地影和动画阴影](docs/shadow-comparison.png)
 
@@ -26,8 +26,9 @@ _同一个模型、视角与姿态。实验室可以分别切换色阶、笔触�
 
 ## 先看效果
 
-- **[试玩页](https://xymeow.github.io/three-anime-style/)**：庭院、灯塔、机器人、牛油果、动画狐狸和动画测试模型；支持本地 GLB、截图和参数导出。按 Original → Cel → Paint → Ink + film 切换，逐层看变化。
-- **[对照实验室](https://xymeow.github.io/three-anime-style/lab.html)**：山地、峡谷、长廊、几何体和三个人物模型，搭配六套配色；左右相机与动画姿态同步。
+**[统一试玩页](https://xymeow.github.io/three-anime-style/)** 收录全部 13 个示例：建筑、地形、静物、动画人物和骨骼／形变测试模型。支持本地 GLB 导入、六套配色、原材质／笔触／阴影对照，以及截图和参数导出。所有模型共用相同的渲染与动画阴影控制。
+
+旧的 `?example=fixture` 仍然打开原模型；`lab.html` 会保留场景、配色和对照参数，跳转到这一页。
 
 本地运行需要 Node 20.19+：
 
@@ -38,14 +39,14 @@ npm ci
 npm run dev
 ```
 
-打开终端给出的 Vite 地址进入试玩页，追加 `/lab.html` 进入实验室。导入的 GLB 在浏览器内读取；试玩页要求资源嵌入文件，不加载外部资源 URL。
+打开终端给出的 Vite 地址进入统一试玩页。导入的 GLB 在浏览器内读取；试玩页要求资源嵌入文件，不加载外部资源 URL。
 
 ## 接入已有项目
 
 目前通过带版本号的 Git 地址安装，尚未发布到 npm：
 
 ```sh
-npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.0
+npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.1
 ```
 
 安装时会构建库和 TypeScript 类型。先接入最简单的角色色阶：
@@ -98,6 +99,6 @@ npm run build:demo
 npm run format:check
 ```
 
-库输出到 `dist/`，两个 demo 输出到 `site-dist/`。修改描边或阴影遮罩后，在 Vite 下打开 `/tests/gpu.html` 检查真实 WebGL 渲染。原创动画测试模型可通过 `node scripts/create-fixture.mjs` 重新生成。
+库输出到 `dist/`，统一试玩页输出到 `site-dist/`。修改描边或阴影遮罩后，在 Vite 下打开 `/tests/gpu.html` 检查真实 WebGL 渲染。原创动画测试模型可通过 `node scripts/create-fixture.mjs` 重新生成。
 
 项目来自[我们的 Orbitals 技术调研与小实验](https://xymeow.github.io/post/orbitals-cel-shading-experiment/)。代码和原创场景使用 MIT 许可证；外部模型按各自许可证提供，详见[试玩模型署名](public/ATTRIBUTION.md)与[实验室模型署名](public/lab-models/CREDITS.md)。

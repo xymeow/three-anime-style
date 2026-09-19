@@ -1,13 +1,13 @@
 # 风格实验室
 
-这组实验从本地对照页发展而来，已随 v0.3.0 发布，入口为 `lab.html`。
+v0.4.1 已将早期试玩和实验室合并到同一个入口、同一份 `demo/main.ts`。`lab.html` 只负责旧链接跳转。
 
-[在线实验室](https://xymeow.github.io/three-anime-style/lab.html?scene=robot&palette=ice&compare=shadows)
+[在线实验室](https://xymeow.github.io/three-anime-style/?scene=robot&palette=ice&compare=shadows)
 
 ```sh
 npm ci
 npm run dev -- --port 5176
-# http://127.0.0.1:5176/lab.html
+# http://127.0.0.1:5176/?example=fixture
 npm run build:lab
 ```
 
@@ -37,7 +37,7 @@ npm run build:lab
 
 TypeScript、10 项现有测试、原 demo 构建、实验页构建、Prettier 检查。浏览器实际检查七个场景、不同配色、分面切换、去贴图、机器人表情、动画、磨砂与描边。
 
-实验代码位于 `lab/`，模型和来源说明在 `public/lab-models/`。双视口会渲染两次，适合比较效果；此页没有做性能基准。
+统一视图与场景注册位于 `demo/`，地形与接地影工具位于 `lab/`，模型和来源说明在 `public/lab-models/`。双视口会渲染两次，适合比较效果；此页没有做性能基准。
 
 ## 2026-09-19：描边修复与动画阴影
 
@@ -52,3 +52,7 @@ TypeScript、10 项现有测试、原 demo 构建、实验页构建、Prettier �
 参考 [Shapefarm 原技术博客](https://www.unrealengine.com/tech-blog/stepping-inside-a-retro-anime-inspired-game-a-look-into-the-rendering-of-orbitals) 的暗部高光、前照明片层阴影与抽象接地贴花。这里用 Three.js 实现上述观感；接地影适配当前平舞台，未实现原作的烘焙体积光照或地形贴花投射。
 
 初始钢笔线宽调整为 1.1 px，颗粒与磨砂仍为零。角色默认打开动画阴影；可切回普通投影。浏览器像素回归入口：`/tests/gpu.html`。
+
+## 合并试玩
+
+庭院、灯塔、维修机器人、牛油果、动画狐狸、骨骼与形变 fixture 与上面的七组场景共用渲染循环、材质转换、动画和阴影。支持本地 GLB、PNG 与参数导出；旧 `example=robot` 保留维修机器人，`scene=robot` 保留表情机器人。

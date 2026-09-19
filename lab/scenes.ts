@@ -285,7 +285,7 @@ export function characterStage(subject: T.Object3D): Fixture {
     s = b.getSize(new T.Vector3()),
     c = b.getCenter(new T.Vector3());
   const anchor = new T.Group();
-  const scale = 3.2 / Math.max(s.y, 0.001);
+  const scale = 3.2 / Math.max(s.x, s.y, s.z, 0.001);
   anchor.scale.setScalar(scale);
   anchor.position.set(-c.x * scale, -b.min.y * scale, -c.z * scale);
   anchor.add(subject);
@@ -303,7 +303,7 @@ export function characterStage(subject: T.Object3D): Fixture {
   wall.scale.set(3.8, 3.8, 0.4);
   return {
     root,
-    target: new T.Vector3(0, 1.65, 0),
+    target: new T.Vector3(0, Math.max((s.y * scale) / 2, 0.8), 0),
     direction: new T.Vector3(0.3, 0.12, 2),
     label: "人物 / 骨骼与材质",
     note: "左侧保留原材质，右侧转换光照。先看面部与关节，再加描边和磨砂；动画姿态两边同步。",

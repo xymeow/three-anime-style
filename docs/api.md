@@ -43,7 +43,7 @@ Omit `select` to paint every supported mesh in the binding. Omit `paint` to keep
 
 `createBrushTexture(seed = 517)` requires a browser canvas. In other environments, provide your own repeat-wrapped, linear grayscale texture with a neutral value of 128/255. Texture creation is never performed during module import. The binding does not dispose the supplied brush map.
 
-In the playground, **Cel** disables brush modulation, **Paint** shows the brushwork without post-processing, and **Ink + film** adds contours, grain and frost. All three keep the selected scenery on continuous shading and subjects on three-tone lighting. Brush strength and size are independent from grain and acrylic. Example links accept `?example=courtyard`, `lighthouse`, `robot`, `avocado`, `fox` or `fixture`. Fox exposes Survey, Walk and Run individually.
+In the playground, **干净色阶 Cel** disables brush modulation, **背景笔触 Paint** shows the brushwork without post-processing, and **自定义 / 完整效果** adds contours, grain and frost. All three keep the selected scenery on continuous shading and subjects on three-tone lighting. Brush strength and size are independent from grain and acrylic. Example links accept `?example=courtyard`, `lighthouse`, `robot`, `avocado`, `fox` or `fixture`. Fox exposes Survey, Walk and Run individually.
 
 ## `new InkPass(scene, camera, options?)`
 
