@@ -1,3 +1,4 @@
+import { createContactShadow } from "./contact-shadow";
 import * as T from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -36,6 +37,10 @@ key.shadow.camera.bottom = -15;
 key.shadow.bias = -0.0003;
 key.shadow.normalBias = 0.08;
 scene.add(ambient, key, key.target);
+const contactShadow = createContactShadow();
+scene.add(contactShadow);
+const contactAnchor = new T.Vector3();
+let contactBone: T.Object3D | undefined;
 const ratio = Math.min(devicePixelRatio, 1.5);
 function pipeline(id: string) {
   const renderer = new T.WebGLRenderer({
@@ -51,6 +56,7 @@ function pipeline(id: string) {
   const composer = new EffectComposer(renderer),
     ink = new InkPass(scene, camera, {
       pixelRatio: ratio,
+      celShadowSelect: (mesh) => mesh.userData.inkCel === true,
       penWidth: 0,
       grain: 0,
       acrylic: 0,
@@ -95,6 +101,7 @@ let fixture: Fixture | undefined,
   binding: InkBinding | undefined,
   mixer: T.AnimationMixer | undefined,
   clips: T.AnimationClip[] = [];
+let initialCompare = new URLSearchParams(location.search).get("compare");
 let current = "terrain",
   generation = 0,
   elapsed = 0,
@@ -114,6 +121,8 @@ function disposeFixture() {
   left.ink.reset();
   right.ink.reset();
   if (!fixture) return;
+  contactBone = undefined;
+  contactShadow.visible = false;
   mixer?.stopAllAction();
   mixer?.uncacheRoot(fixture.root);
   mixer = undefined;
@@ -179,6 +188,7 @@ function restyle() {
   }
   binding = applyInk(fixture.root, {
     shadow: p.shadow,
+    shadowHighlight: input("shadow-highlight").checked ? 0.65 : 0,
     mid: p.mid,
     light: p.light,
     paint: {
@@ -196,6 +206,13 @@ function updateLabels() {
   el("right-label").textContent = brushMode
     ? "背景 · 宽笔触"
     : "三渲二 + 背景笔触";
+  if (select("compare").value === "shadows") {
+    el("left-label").textContent = "三渲二 · 普通投影";
+    el("right-label").textContent =
+      select("shadow-mode").value === "anime"
+        ? "三渲二 · 动画阴影"
+        : "三渲二 · 普通投影";
+  }
   el("paint-out").textContent = `${value("paint")}%`;
   el("size-out").textContent = `${(value("size") / 100).toFixed(1)}×`;
   el("pen-out").textContent = `${(value("pen") / 10).toFixed(1)} px`;
@@ -204,6 +221,7 @@ function updateLabels() {
   const url = new URL(location.href);
   url.searchParams.set("scene", current);
   url.searchParams.set("palette", select("palette").value);
+  url.searchParams.set("compare", select("compare").value);
   history.replaceState(null, "", url);
 }
 function fit() {
@@ -256,6 +274,9 @@ async function choose(name: string) {
       const gltf = await new GLTFLoader().loadAsync(
         `/lab-models/${models[name].file}`,
       );
+      gltf.scene.traverse((o) => {
+        if ((o as T.Mesh).isMesh) o.userData.inkCel = true;
+      });
       next = characterStage(gltf.scene);
       animations = gltf.animations;
     } else next = backdrop(name, select("shape").value === "faceted");
@@ -283,6 +304,11 @@ async function choose(name: string) {
       triangles +=
         (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3;
       if (!m.geometry.attributes.normal) m.geometry.computeVertexNormals();
+      if (!models[name] && !m.userData.inkPaint) m.userData.inkCel = true;
+      if (models[name] && !contactBone && (o as T.SkinnedMesh).isSkinnedMesh)
+        contactBone = (o as T.SkinnedMesh).skeleton.bones.find((b) =>
+          /hips|pelvis/i.test(b.name),
+        );
       m.castShadow = true;
       m.receiveShadow = true;
       if ((m as T.SkinnedMesh).isSkinnedMesh) {
@@ -307,16 +333,25 @@ async function choose(name: string) {
     input("shadows").checked = Boolean(models[name]);
     key.castShadow = Boolean(models[name]);
     el("face").hidden = !models[name];
+    el("anime-options").hidden = !models[name];
+    select("shadow-mode").value = models[name] ? "anime" : "standard";
     el("expression-row").hidden = name !== "robot";
     select("expression").value = "";
     select("compare").value = models[name] ? "source" : "brush";
+    if (
+      initialCompare &&
+      ["source", "brush", "shadows"].includes(initialCompare)
+    ) {
+      select("compare").value = initialCompare;
+      initialCompare = null;
+    }
     el("clip-row").hidden = clips.length === 0;
     select("clip").replaceChildren(
       ...clips.map((c, i) => new Option(c.name, String(i))),
     );
     if (clips.length) {
       mixer = new T.AnimationMixer(fixture.root);
-      const idle = clips.findIndex((c) => /idle/i.test(c.name));
+      const idle = clips.findIndex((c) => /^idle$/i.test(c.name));
       select("clip").value = String(Math.max(0, idle));
       playClip();
     }
@@ -352,7 +387,12 @@ document
   .querySelectorAll<HTMLButtonElement>("[data-scene]")
   .forEach((b) => (b.onclick = () => void choose(b.dataset.scene!)));
 select("palette").onchange = restyle;
-select("compare").onchange = updateLabels;
+select("compare").onchange = () => {
+  if (select("compare").value === "shadows")
+    select("shadow-mode").value = "anime";
+  updateLabels();
+};
+select("shadow-mode").onchange = updateLabels;
 select("shape").onchange = () =>
   models[current] ? restyle() : void choose(current);
 input("clay").onchange = restyle;
@@ -410,6 +450,29 @@ el("save").onclick = () => {
   link.href = c.toDataURL();
   link.click();
 };
+function configureShadowStyle(stylized: boolean) {
+  if (!fixture) return;
+  const anime = stylized && select("shadow-mode").value === "anime";
+  key.castShadow = input("shadows").checked;
+  fixture.root.traverse((o) => {
+    if ((o as T.Mesh).isMesh) {
+      const mesh = o as T.Mesh;
+      mesh.castShadow = !(anime && mesh.userData.inkCel);
+      mesh.receiveShadow = !(anime && mesh.userData.inkCel);
+    }
+  });
+  contactShadow.visible = Boolean(
+    anime && models[current] && input("contact-shadow").checked,
+  );
+  if (contactShadow.visible) {
+    contactAnchor.set(0, 0, 0);
+    contactBone?.getWorldPosition(contactAnchor);
+    contactShadow.position.set(contactAnchor.x, 0.012, contactAnchor.z);
+    contactShadow.material.uniforms.color.value.set(
+      palettes[select("palette").value].ink,
+    );
+  }
+}
 let previous = performance.now();
 function frame(now: number) {
   requestAnimationFrame(frame);
@@ -436,18 +499,39 @@ function frame(now: number) {
     penColor: p.ink,
   };
   try {
-    binding.setEnabled(brushMode);
-    binding.setPaint({ strength: 0, scale: paintScale() });
+    configureShadowStyle(false);
+    binding.setEnabled(brushMode || select("compare").value === "shadows");
+    binding.setShadowHighlight(0);
+    binding.setPaint({
+      strength: brushMode ? 0 : value("paint") / 100,
+      scale: paintScale(),
+    });
     left.ink.configure(
-      brushMode ? effects : { ...effects, penWidth: 0, grain: 0, acrylic: 0 },
+      brushMode || select("compare").value === "shadows"
+        ? { ...effects, celShadow: 0 }
+        : { ...effects, penWidth: 0, grain: 0, acrylic: 0, celShadow: 0 },
     );
     left.composer.render(delta);
+    configureShadowStyle(true);
     binding.setEnabled(true);
+    binding.setShadowHighlight(
+      input("shadow-highlight").checked &&
+        select("shadow-mode").value === "anime"
+        ? 0.65
+        : 0,
+    );
     binding.setPaint({ strength: value("paint") / 100, scale: paintScale() });
-    right.ink.configure(effects);
+    right.ink.configure({
+      ...effects,
+      celShadow:
+        input("layer-shadow").checked && select("shadow-mode").value === "anime"
+          ? 0.45
+          : 0,
+    });
     right.composer.render(delta);
   } finally {
     binding.setEnabled(true);
+    configureShadowStyle(false);
   }
 }
 const params = new URLSearchParams(location.search);

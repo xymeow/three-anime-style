@@ -50,6 +50,7 @@
             >对照方式<select id="compare">
               <option value="brush">只比较背景笔触</option>
               <option value="source">原材质 / 三渲二</option>
+              <option value="shadows">普通投影 / 动画阴影</option>
             </select></label
           >
           <label
@@ -71,7 +72,38 @@
           >
           <label class="check"
             ><input type="checkbox" id="shadows" />投射阴影</label
-          ><label id="expression-row" hidden
+          >
+          <section id="anime-options" hidden>
+            <label
+              >角色阴影<select id="shadow-mode">
+                <option value="anime">动画阴影</option>
+                <option value="standard">普通投影</option>
+              </select></label
+            >
+            <label class="check"
+              ><input
+                id="contact-shadow"
+                type="checkbox"
+                checked
+              />抽象接地影</label
+            >
+            <label class="check"
+              ><input
+                id="layer-shadow"
+                type="checkbox"
+                checked
+              />片层偏移影</label
+            >
+            <label class="check"
+              ><input
+                id="shadow-highlight"
+                type="checkbox"
+                checked
+              />暗部反光</label
+            >
+            <p class="hint">动画阴影关闭角色的计算投影；背景仍可保留投影。</p>
+          </section>
+          <label id="expression-row" hidden
             >表情<select id="expression">
               <option value="">原表情</option>
               <option>Angry</option>
@@ -97,7 +129,12 @@
             <summary>表面效果</summary>
             <label
               >钢笔描边 <output id="pen-out">0 px</output
-              ><input id="pen" type="range" min="0" max="30" value="0" /></label
+              ><input
+                id="pen"
+                type="range"
+                min="0"
+                max="30"
+                value="11" /></label
             ><label
               >胶片颗粒 <output id="grain-out">0%</output
               ><input

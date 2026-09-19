@@ -199,3 +199,22 @@ Tests cover ownership, restoration, unsupported materials, animation data, shade
 Inspired by our [Orbitals rendering study and experiment](https://xymeow.github.io/post/orbitals-cel-shading-experiment/). This repository contains original implementation and procedural assets, with no game assets or game source code.
 
 Code and original scenes: MIT © 2026 xymeow. Third-party model licenses are listed in [model credits](public/ATTRIBUTION.md).
+
+### Local experimental shadow controls
+
+The local experiment branch adds opt-in cel shadows (not in the published `v0.2.0` tag):
+
+```ts
+const binding = applyInk(model, { shadowHighlight: 0.65 });
+binding.setShadowHighlight(0.4); // 0..1; default 0, cel materials only
+const ink = new InkPass(scene, camera, {
+  celShadow: 0.45, // 0..1; default 0
+  celShadowSelect: (mesh) => mesh.userData.inkCel === true,
+});
+```
+
+`shadowHighlight` adds a restrained view-dependent reflected rim inside the dark band. `celShadow` offsets the selected foreground silhouette by 2.5 CSS pixels, blends its edge, and darkens the background slightly. Depth prevents leakage through nearer surfaces. It works even with `penWidth: 0`; the same ID/depth render is reused when outlines are on. Transparent/transmissive/custom shader surfaces keep the existing contour-buffer limitations.
+
+The lab's animation-shadow mode also disables the character's computed casting and receiving shadows and uses an abstract flat contact patch. That app-owned patch lives in `lab/contact-shadow.ts`, assumes the stage is at y=0, and follows the hips where available. For uneven terrain, the host app must place/orient/project a decal onto its receiving surface. The pass itself does not change any light or `castShadow` setting.
+
+Contours now reject continuous projected-depth slopes while keeping object/material boundaries and same-mesh occlusions. Run the real WebGL regression at `/tests/gpu.html` after starting Vite; it compares the former depth rule with the fix on perspective and orthographic planes and checks occlusion and cel masks.

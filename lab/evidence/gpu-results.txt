@@ -1,0 +1,13 @@
+PASS perspective plane 0.03: old false ink 24336; new 0/24396
+PASS orthographic plane 0.03: old false ink 4332; new 0/4332
+PASS perspective plane 0.1: old false ink 29393; new 0/29868
+PASS orthographic plane 0.1: old false ink 26897; new 0/27132
+PASS perspective plane 0.3: old false ink 33958; new 0/45600
+PASS orthographic plane 0.3: old false ink 27765; new 0/28044
+PASS perspective plane 0.65: old false ink 6486; new 0/51984
+PASS orthographic plane 0.65: old false ink 28607; new 0/28956
+PASS Regression reproduces the old failure: 181774 false ink pixels
+PASS Same-mesh self-occlusion preserved: 2675 dark boundary pixels
+PASS Cel offset does not tint its own actor: 749 background pixels; 0 actor pixels
+PASS Cel shadow cannot leak through foreground geometry: 0 leaked pixels
+ALL GPU CHECKS PASSED

@@ -212,3 +212,60 @@ test("invalid paint options fail before attaching a binding", () => {
   const binding = applyInk(mesh);
   binding.dispose();
 });
+
+test("shadow highlight validates before attaching and updates compiled materials without replacement", () => {
+  const source = new T.MeshStandardMaterial(),
+    mesh = new T.Mesh(new T.BoxGeometry(), source);
+  assert.throws(
+    () => applyInk(mesh, { shadowHighlight: NaN }),
+    /shadowHighlight/,
+  );
+  assert.equal(mesh.material, source);
+  const binding = applyInk(mesh, { shadowHighlight: 0.4 }),
+    adapted = mesh.material;
+  const shader = {
+    uniforms: {},
+    fragmentShader: T.ShaderLib.toon.fragmentShader,
+  };
+  adapted.onBeforeCompile(shader, {});
+  binding.setShadowHighlight(0.7);
+  assert.equal(shader.uniforms.inkShadowHighlight.value, 0.7);
+  assert.equal(mesh.material, adapted);
+  assert.throws(() => binding.setShadowHighlight(2), /shadowHighlight/);
+  assert.equal(shader.uniforms.inkShadowHighlight.value, 0.7);
+  binding.dispose();
+  assert.equal(mesh.material, source);
+});
+
+test("cel mask failure restores prior mesh materials with outlines disabled", () => {
+  const scene = new T.Scene(),
+    a = new T.Mesh(new T.BoxGeometry(), new T.MeshBasicMaterial()),
+    b = new T.Mesh(a.geometry, a.material);
+  scene.add(a, b);
+  const original = a.material;
+  const pass = new InkPass(scene, new T.PerspectiveCamera(), {
+    penWidth: 0,
+    celShadow: 0.5,
+    celShadowSelect: (mesh) => {
+      if (mesh === b) throw new Error("selection failed");
+      return true;
+    },
+  });
+  const renderer = {
+    capabilities: {},
+    shadowMap: { autoUpdate: true },
+    xr: { enabled: false },
+    autoClear: false,
+    getClearColor: (c) => c.set("white"),
+    getClearAlpha: () => 1,
+    setClearColor() {},
+    getRenderTarget: () => null,
+    setRenderTarget() {},
+  };
+  assert.throws(() => pass.render(renderer, {}, {}), /selection failed/);
+  assert.equal(a.material, original);
+  assert.equal(b.material, original);
+  assert.equal(renderer.autoClear, false);
+  assert.throws(() => pass.configure({ celShadow: 1.1 }), /celShadow/);
+  pass.dispose();
+});

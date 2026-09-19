@@ -46,3 +46,13 @@ const ink = new InkPass(scene, camera, {
 选 **Paint** 可以单独观察笔触；用 **Scenery brushwork** 调强度，**Brush size** 调大小。**Ink + film** 再叠加钢笔、胶片和磨砂。狐狸可以分别播放观察、走路、跑步三组动作。
 
 模块提供 `createBrushTexture()` 与 `applyInk(..., { paint: { map, strength, scale, select } })`；`select` 决定哪些网格属于绘画式背景，`binding.setPaint()` 可在运行时调整。完整代码见英文 README。
+
+### 本地实验：动画阴影
+
+实验分支新增 `applyInk(model, { shadowHighlight: 0.65 })` 与 `binding.setShadowHighlight(0.4)`，在角色暗部增加少量反光；范围 0..1，默认 0，不影响背景笔触材质。
+
+`InkPass` 可设置 `celShadow: 0.45` 和 `celShadowSelect: mesh => mesh.userData.inkCel === true`，给选中的角色轮廓添加轻微片层偏移影。默认关闭；关闭描边时也能单独工作。前方物体会遮挡偏移影。
+
+实验页另有抽象接地影，并关闭角色的计算投影和接收投影。接地影是应用层放在 y=0 舞台上的平面色块，跟随可识别的髋部骨骼；崎岖地形需要应用层适配。阴影 pass 不会自行修改场景灯光或投影设置。
+
+这些选项尚未发布到 `v0.2.0`。描边修复、透视／正交斜面和遮挡的 WebGL 像素回归位于 `/tests/gpu.html`。

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Three Ink GPU regression</title
+  ><style>
+    body {
+      font: 14px system-ui;
+      padding: 24px;
+      background: #eee;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+    canvas {
+      width: 256px;
+      height: 256px;
+      margin: 8px;
+      border: 1px solid #aaa;
+    }
+    section {
+      display: inline-block;
+    }
+    h2 {
+      font-size: 15px;
+    }
+  </style>
+  <h1>InkPass GPU regression</h1>
+  <p>
+    Real WebGL pixels: steep planes, silhouettes, self-occlusion and cel masks.
+  </p>
+  <pre id="results">Running…</pre>
+  <div id="images"></div>
+  <script type="module" src="./gpu.ts"></script>
+</html>

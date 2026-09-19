@@ -6,6 +6,7 @@ import {
   Object3D,
   Vector2,
   Texture,
+  ShaderChunk,
 } from "three";
 
 export interface InkPaintSettings {
@@ -21,6 +22,8 @@ export interface InkPaintOptions extends InkPaintSettings {
   select?: (mesh: Mesh) => boolean;
 }
 export interface InkOptions {
+  /** Stylized reflected rim inside the cel shadow band, 0..1. Default 0. */
+  shadowHighlight?: number;
   /** Selected scenery uses continuous painted lighting; other meshes keep three bands. */
   paint?: InkPaintOptions;
   /** Thresholds in the half-Lambert range 0..1. */
@@ -39,11 +42,19 @@ export interface InkBinding {
   readonly skipped: InkSkip[];
   setEnabled(enabled: boolean): void;
   setPaint(settings: InkPaintSettings): void;
+  setShadowHighlight(strength: number): void;
   dispose(): void;
 }
 const attached = new WeakSet<Mesh>();
 /** Adapt ordinary mesh materials while keeping geometry, textures and animation owned by the caller. */
 export function applyInk(root: Object3D, options: InkOptions = {}): InkBinding {
+  const shadowHighlight = { value: options.shadowHighlight ?? 0 };
+  function setShadowHighlight(strength: number) {
+    if (!Number.isFinite(strength) || strength < 0 || strength > 1)
+      throw new Error("shadowHighlight must be between 0 and 1");
+    shadowHighlight.value = strength;
+  }
+  setShadowHighlight(shadowHighlight.value);
   const paintUniforms = {
     inkBrushMap: { value: options.paint?.map ?? null },
     inkPaintStrength: { value: options.paint?.strength ?? 0.7 },
@@ -181,6 +192,7 @@ export function applyInk(root: Object3D, options: InkOptions = {}): InkBinding {
       };
       material.onBeforeCompile = (shader) => {
         Object.assign(shader.uniforms, uniforms);
+        shader.uniforms.inkShadowHighlight = shadowHighlight;
         if (painted) {
           Object.assign(shader.uniforms, paintUniforms);
           // transformed already contains morphing, skinning and displacement.
@@ -241,9 +253,27 @@ export function applyInk(root: Object3D, options: InkOptions = {}): InkBinding {
           }
         `,
         );
+        if (!painted)
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <lights_toon_pars_fragment>",
+            `uniform float inkShadowHighlight;
+          vec3 getInkIrradiance(vec3 n, vec3 l, vec3 viewDir) {
+            vec3 c=getGradientIrradiance(n,l);
+            float v=dot(n,l)*0.5+0.5;
+            float aa=max(fwidth(v),0.001);
+            float dark=1.0-smoothstep(inkThresholds.x-aa,inkThresholds.x+aa,v);
+            float rim=smoothstep(0.55,0.78,1.0-max(dot(n,viewDir),0.0));
+            return mix(c,inkMid,dark*rim*inkShadowHighlight*0.6);
+          }
+` +
+              ShaderChunk.lights_toon_pars_fragment.replace(
+                "getGradientIrradiance( geometryNormal, directLight.direction )",
+                "getInkIrradiance( geometryNormal, directLight.direction, geometryViewDir )",
+              ),
+          );
       };
       material.customProgramCacheKey = () =>
-        painted ? "three-ink-paint-v1" : "three-ink-toon-v1";
+        painted ? "three-ink-paint-v1" : "three-ink-toon-v2";
       cache.set(cacheKey, material);
       owned.push(material);
       return material;
@@ -258,6 +288,9 @@ export function applyInk(root: Object3D, options: InkOptions = {}): InkBinding {
   let disposed = false;
   return {
     materials: owned,
+    setShadowHighlight(strength) {
+      if (!disposed) setShadowHighlight(strength);
+    },
     setPaint(settings) {
       if (!disposed) setPaint(settings);
     },
