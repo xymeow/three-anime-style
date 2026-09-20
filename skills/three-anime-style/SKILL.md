@@ -16,7 +16,7 @@ Integrate into the user's existing scene and animation loop. Anime Style for Thr
 
 ## Connect
 
-Install with `npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.0` when these dependencies are absent and r186 fits the app. The package is not on npm yet. Respect an existing package manager and lockfile.
+Use the tagged Git installation command in the repository README when these dependencies are absent and r186 fits the app. Verify that the selected tag exists; a locally bumped package version may not be released yet. The package is not on npm yet. Respect an existing package manager and lockfile.
 
 ```ts
 import { applyInk, InkPass, steppedTime } from "@xymeow/three-anime-style";
@@ -35,7 +35,7 @@ const ink = new InkPass(scene, camera, {
 });
 ```
 
-Insert `ink` after the scene RenderPass and before the final OutputPass. Keep intermediate render targets linear. Use one dominant directional light with modest ambient fill to make the three bands readable; additive lights and shadows affect the final palette. The thresholds are in half-Lambert space, `dot(N,L) * 0.5 + 0.5`.
+Insert `ink` after the scene RenderPass and before the final OutputPass. Keep intermediate render targets linear. Keep the original lights for the first comparison. One dominant directional light makes the bands readable, while interiors still need ambient fill; additive lights and shadows affect the final palette. The thresholds are in half-Lambert space, `dot(N,L) * 0.5 + 0.5`.
 
 For stepped animation, use `mixer.setTime(steppedTime(elapsedSeconds, 12))` in the existing render loop. Supply non-negative absolute elapsed time. Keep camera controls and composer rendering at display refresh rate. `steppedTime(t, 0)` keeps motion smooth. Do not apply both `mixer.update(delta)` and `setTime` to the same frame.
 
@@ -56,7 +56,7 @@ Keep renderer and composer sizes synchronized. If DPR changes, update renderer/c
 
 ## Optional effects
 
-Read [backgrounds and shadows](references/effects.md) when adding painted scenery, offset cel shadows or flat contact shadows. Start with clean cel shading unless the user asks for a textured finish; grain, acrylic and 12 fps poses are independent choices.
+Read [backgrounds and shadows](references/effects.md) when adding painted scenery, offset cel shadows or flat contact shadows. Start with clean cel shading unless the user asks for a textured finish; explicitly pass grain/acrylic zero because omitted options default to 0.5. Grain, acrylic and 12 fps poses are independent choices. For broad ink patches or dirty dark areas, read the dim-interior diagnosis in that reference before changing geometry or lighting.
 
 ## Verify
 

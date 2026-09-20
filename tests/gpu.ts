@@ -198,6 +198,113 @@ try {
   layer.dispose();
   blocker.geometry.dispose();
   actor.geometry.dispose();
+  scene.clear();
+  // Wall and cabinet panels can share a plane without sharing mesh IDs.
+  const flat = new T.Group();
+  const wall = new T.Mesh(new T.PlaneGeometry(8, 8), white);
+  flat.add(wall);
+  for (let i = 0; i < 5; i++) {
+    const panel = new T.Mesh(new T.BoxGeometry(1.37, 3.1, 0.12), white);
+    panel.position.set((i - 2) * 0.57, 0.17, -0.06);
+    flat.add(panel);
+  }
+  flat.rotation.y = 0.43;
+  scene.add(flat);
+  let reproduced = 0;
+  for (const near of [0.035, 0.1]) {
+    camera.near = near;
+    camera.far = 55;
+    camera.position.set(0.71, 0.19, 3.1);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    const fixed = makePass(camera);
+    fixed.configure({ penWidth: 0 });
+    const reference = render(camera, fixed);
+    fixed.configure({ penWidth: 1.1 });
+    const corrected = render(camera, fixed);
+    const legacy = makePass(camera);
+    legacy.configure({ penWidth: 1.1 });
+    legacy.material.fragmentShader = legacy.material.fragmentShader.replace(
+      "idEdge*=smoothstep(0.00000025,0.000001,planeError);",
+      "idEdge*=1.0;",
+    );
+    const previous = render(camera, legacy);
+    const beforeCount = interiorCount(previous, reference),
+      afterCount = interiorCount(corrected, reference);
+    reproduced += beforeCount.count;
+    record(
+      afterCount.total > 1000 && afterCount.count === 0,
+      `Overlapping coplanar panels / near ${near}`,
+      `old ${beforeCount.count}; fixed ${afterCount.count} false ink pixels`,
+    );
+    if (near === 0.035) {
+      shot(previous, "Before: coplanar panel false ink");
+      shot(corrected, "After: continuous coplanar surface");
+    }
+    fixed.dispose();
+    legacy.dispose();
+  }
+  record(
+    reproduced > 100,
+    "Coplanar regression reproduces the reported failure",
+    `${reproduced} false ink pixels`,
+  );
+  scene.clear();
+  flat.traverse((o) => {
+    if (o instanceof T.Mesh) o.geometry.dispose();
+  });
+
+  // Ink must not become a light-colored outline around dark objects.
+  const dark = new T.MeshBasicMaterial({
+    color: new T.Color(0.01, 0.01, 0.01),
+  });
+  const darkPanel = new T.Mesh(new T.PlaneGeometry(2, 2), dark);
+  scene.background = new T.Color(0.02, 0.02, 0.02);
+  scene.add(darkPanel);
+  camera.position.set(0, 0, 6);
+  camera.lookAt(0, 0, 0);
+  camera.updateMatrixWorld();
+  const night = makePass(camera);
+  night.configure({ penWidth: 0 });
+  const plain = render(camera, night);
+  night.configure({ penWidth: 1.1, penColor: "#777777" });
+  const outlined = render(camera, night);
+  let brightEdges = 0;
+  for (let i = 0; i < plain.length; i += 4)
+    if (outlined[i] > plain[i] + 1) brightEdges++;
+  record(
+    brightEdges === 0,
+    "Night outlines only darken",
+    `${brightEdges} brightened pixels`,
+  );
+  scene.remove(darkPanel);
+  night.configure({ penWidth: 0, grain: 0.5, acrylic: 0.5 });
+  for (const luminance of [0, 0.008, 0.04, 0.3]) {
+    scene.background = new T.Color(luminance, luminance, luminance);
+    const finished = render(camera, night);
+    let sum = 0,
+      sumSq = 0;
+    for (let i = 0; i < finished.length; i += 4) {
+      sum += finished[i];
+      sumSq += finished[i] ** 2;
+    }
+    const mean = sum / (size * size),
+      deviation = Math.sqrt(Math.max(0, sumSq / (size * size) - mean ** 2));
+    record(
+      luminance === 0
+        ? mean === 0
+        : luminance < 0.05
+          ? Math.abs(mean - luminance * 255) < 2 && deviation < 1.5
+          : deviation > 0.2,
+      `Film and frost / luminance ${luminance}`,
+      `mean ${mean.toFixed(2)}, noise deviation ${deviation.toFixed(2)}`,
+    );
+    shot(finished, `Night finish: linear light ${luminance}`);
+  }
+  night.dispose();
+  darkPanel.geometry.dispose();
+  dark.dispose();
   results.push("ALL GPU CHECKS PASSED");
   document.getElementById("results")!.textContent = results.join("\n");
 } catch (error) {

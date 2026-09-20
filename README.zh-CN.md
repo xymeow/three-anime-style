@@ -48,7 +48,7 @@ npm run dev
 目前通过带版本号的 Git 地址安装，尚未发布到 npm：
 
 ```sh
-npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.1
+npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.3
 ```
 
 安装时会构建库和 TypeScript 类型。先接入最简单的角色色阶：
@@ -66,6 +66,8 @@ style.setEnabled(true); // 恢复动画色阶
 需要描边和后期时，把 `InkPass` 加在现有 composer 的场景渲染之后、最终 `OutputPass` 之前。复用已有渲染循环即可。
 
 [完整接入示例](docs/integration.md)包含动画采样、窗口缩放、像素比例和资源释放；[API 文档](docs/api.md)包含背景笔触、阴影、参数默认值和兼容性。
+
+接入时先保留原场景灯光，显式设置 `grain: 0, acrylic: 0`，再逐层开启描边、背景笔触和表面质感。暗光或低角度描边异常的排查见[调参与故障定位](docs/integration.md#tune-in-layers)。
 
 ### 哪些模型适用？
 

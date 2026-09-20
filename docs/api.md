@@ -63,7 +63,9 @@ With both `penWidth` and `celShadow` at zero, the auxiliary ID/depth render is s
 
 Use `configure(options)` to update the finish. Set `enabled = false` to bypass the pass. Call `reset()` after removing/replacing models to release cached ID materials. Call `dispose()` when removing the pass. A composer calls `setSize()` automatically.
 
-The acrylic effect is a surface finish over the rendered image, rather than a glass material that refracts objects behind it. Grain is independent from lighting and does not perturb mesh geometry. The pass preserves the source alpha channel; its two-sided silhouette sampling is most predictable on an opaque scene background.
+The acrylic effect is a surface finish over the rendered image, rather than a glass material that refracts objects behind it. Grain is applied after lighting and does not perturb mesh geometry. Its amplitude decreases with the local linear color in shadows; black stays black. Acrylic scatter rejects large brightness jumps and its milky tint fades out in dark areas. Ink only darkens the underlying image, so dark surfaces do not acquire bright outlines.
+
+Coincident, coplanar object boundaries are suppressed to avoid false ink from depth-buffer ties. Deliberate flat material seams are not guaranteed contours; physical silhouette edges, depth breaks and same-mesh self-occlusion remain available. The pass preserves the source alpha channel; its two-sided silhouette sampling is most predictable on an opaque scene background.
 
 ## `steppedTime(seconds, fps = 12)`
 

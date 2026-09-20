@@ -54,8 +54,13 @@ const fragmentShader = /* glsl */ `
     // Hardware depth is affine across a projected plane (unlike linear view depth).
     // Estimate the continuous slope from either side of this candidate edge.
     float z0=texture2D(tDepth,uv).x, z1=texture2D(tDepth,next).x;
-    float back=abs(z0-texture2D(tDepth,uv-offset).x);
-    float ahead=abs(texture2D(tDepth,next+offset).x-z1);
+    float backDelta=z0-texture2D(tDepth,uv-offset).x;
+    float aheadDelta=texture2D(tDepth,next+offset).x-z1;
+    float back=abs(backDelta), ahead=abs(aheadDelta);
+    // Separate IDs on the same projected plane are not a geometric contour.
+    // This suppresses depth-buffer tie flicker between overlapping wall panels.
+    float planeError=max(abs((z1-z0)-backDelta),abs(aheadDelta-(z1-z0)));
+    idEdge*=smoothstep(0.00000025,0.000001,planeError);
     float backValid=sameId(id,texture2D(tId,uv-offset).rgb);
     float aheadValid=sameId(other,texture2D(tId,next+offset).rgb);
     float slope=min(mix(1.0,back,backValid),mix(1.0,ahead,aheadValid));
@@ -84,6 +89,27 @@ const fragmentShader = /* glsl */ `
       mask*=1.0-texture2D(tId,vUv).a;
       c=mix(c,c*0.55,mask*celShadow);
     }
+    if(acrylic>0.0) {
+      vec2 r=px*pixelRatio*(1.2+acrylic*2.4);
+      // Color-aware scatter avoids dragging bright surfaces across dark edges.
+      vec3 scatter=c;
+      float weight=1.0;
+      float luminance=dot(c,vec3(0.2126,0.7152,0.0722));
+      for(int axis=0;axis<4;axis++) {
+        vec2 offset=axis==0?vec2(r.x,0.0):axis==1?vec2(-r.x,0.0):axis==2?vec2(0.0,r.y):vec2(0.0,-r.y);
+        vec3 neighbor=texture2D(tDiffuse,vUv+offset).rgb;
+        float w=exp(-abs(dot(neighbor,vec3(0.2126,0.7152,0.0722))-luminance)*32.0);
+        scatter+=neighbor*w;
+        weight+=w;
+      }
+      c=mix(c,scatter/weight,0.24*acrylic);
+      // Preserve black and colored night lighting; veil belongs in brighter tones.
+      float veil=smoothstep(0.02,0.45,luminance);
+      c=mix(c,vec3(0.87,0.9,0.89),0.075*acrylic*veil);
+      float fine=hash(floor(q)+vec2(41.7,93.1))-0.5;
+      float coarse=hash(floor(q/2.4)+vec2(8.3,27.9))-0.5;
+      c+=(fine*0.75+coarse*0.25)*min(vec3(0.085),c*0.3)*acrylic;
+    }
     if(penWidth>0.0) {
       vec2 center=(floor(vUv*resolution)+0.5)*px;
       vec3 id=texture2D(tId,center).rgb;
@@ -95,18 +121,10 @@ const fragmentShader = /* glsl */ `
       edge=max(edge,boundary(center,vec2(0,r.y),id,d));
       edge=max(edge,boundary(center,-vec2(0,r.y),id,d));
       float ink=0.8+0.2*hash(floor(q*1.7));
-      c=mix(c,penColor,edge*ink);
+      c=mix(c,min(c,penColor),edge*ink);
     }
-    if(acrylic>0.0) {
-      vec2 r=px*pixelRatio*(1.2+acrylic*2.4);
-      vec3 scatter=(texture2D(tDiffuse,vUv+vec2(r.x,0)).rgb+texture2D(tDiffuse,vUv-vec2(r.x,0)).rgb+texture2D(tDiffuse,vUv+vec2(0,r.y)).rgb+texture2D(tDiffuse,vUv-vec2(0,r.y)).rgb)*0.25;
-      c=mix(c,scatter,0.24*acrylic);
-      c=mix(c,vec3(0.87,0.9,0.89),0.075*acrylic);
-      float fine=hash(floor(q)+vec2(41.7,93.1))-0.5;
-      float coarse=hash(floor(q/2.4)+vec2(8.3,27.9))-0.5;
-      c+=(fine*0.75+coarse*0.25)*0.085*acrylic;
-    }
-    c+=(hash(floor(q)+floor(time*24.0)*vec2(7.13,3.71))-0.5)*0.1*grain;
+    // Relative noise in shadows, bounded absolute noise in highlights.
+    c+=(hash(floor(q)+floor(time*24.0)*vec2(7.13,3.71))-0.5)*min(vec3(0.1),c*0.3)*grain;
     gl_FragColor=vec4(max(c,vec3(0.0)),source.a);
   }
 `;
@@ -228,6 +246,12 @@ export class InkPass extends Pass {
       "clippingPlanes",
       "clipIntersection",
       "wireframe",
+      "polygonOffset",
+      "polygonOffsetFactor",
+      "polygonOffsetUnits",
+      "depthTest",
+      "depthWrite",
+      "depthFunc",
     ])
       if (s[key] !== undefined) target[key] = s[key];
     m.visible =
@@ -268,6 +292,7 @@ export class InkPass extends Pass {
         clearAlpha = renderer.getClearAlpha();
       const autoClear = renderer.autoClear,
         shadowUpdate = renderer.shadowMap.autoUpdate,
+        shadowNeedsUpdate = renderer.shadowMap.needsUpdate,
         xr = renderer.xr.enabled;
       const oldTarget = renderer.getRenderTarget();
       let id = 1;
@@ -301,6 +326,7 @@ export class InkPass extends Pass {
         this.scene.overrideMaterial = null;
         renderer.autoClear = true;
         renderer.shadowMap.autoUpdate = false;
+        renderer.shadowMap.needsUpdate = false;
         renderer.xr.enabled = false;
         renderer.setClearColor(0x000000, 0);
         renderer.setRenderTarget(this.target);
@@ -314,6 +340,7 @@ export class InkPass extends Pass {
         renderer.setClearColor(clearColor, clearAlpha);
         renderer.autoClear = autoClear;
         renderer.shadowMap.autoUpdate = shadowUpdate;
+        renderer.shadowMap.needsUpdate = shadowNeedsUpdate;
         renderer.xr.enabled = xr;
         renderer.setRenderTarget(oldTarget);
       }

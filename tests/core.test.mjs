@@ -133,7 +133,7 @@ test("auxiliary render failure restores scene, materials and renderer settings",
   const target = {};
   const renderer = {
     capabilities: {},
-    shadowMap: { autoUpdate: true },
+    shadowMap: { autoUpdate: true, needsUpdate: true },
     xr: { enabled: true },
     autoClear: false,
     target,
@@ -148,6 +148,7 @@ test("auxiliary render failure restores scene, materials and renderer settings",
     },
     clear() {},
     render() {
+      assert.equal(this.shadowMap.needsUpdate, false);
       throw new Error("simulated GPU failure");
     },
   };
@@ -156,6 +157,7 @@ test("auxiliary render failure restores scene, materials and renderer settings",
   assert.equal(scene.background, bg);
   assert.equal(renderer.target, target);
   assert.equal(renderer.shadowMap.autoUpdate, true);
+  assert.equal(renderer.shadowMap.needsUpdate, true);
   assert.equal(renderer.xr.enabled, true);
   assert.equal(renderer.autoClear, false);
   pass.dispose();
@@ -253,7 +255,7 @@ test("cel mask failure restores prior mesh materials with outlines disabled", ()
   });
   const renderer = {
     capabilities: {},
-    shadowMap: { autoUpdate: true },
+    shadowMap: { autoUpdate: true, needsUpdate: true },
     xr: { enabled: false },
     autoClear: false,
     getClearColor: (c) => c.set("white"),
@@ -268,4 +270,28 @@ test("cel mask failure restores prior mesh materials with outlines disabled", ()
   assert.equal(renderer.autoClear, false);
   assert.throws(() => pass.configure({ celShadow: 1.1 }), /celShadow/);
   pass.dispose();
+});
+
+test("contour capture preserves source depth and polygon offset settings", () => {
+  const source = new T.MeshStandardMaterial({
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -2,
+    depthWrite: false,
+    depthTest: false,
+    depthFunc: T.AlwaysDepth,
+  });
+  const pass = new InkPass(new T.Scene(), new T.PerspectiveCamera());
+  const captured = pass.idMaterial(source, 1, false);
+  for (const key of [
+    "polygonOffset",
+    "polygonOffsetFactor",
+    "polygonOffsetUnits",
+    "depthWrite",
+    "depthTest",
+    "depthFunc",
+  ])
+    assert.equal(captured[key], source[key]);
+  pass.dispose();
+  source.dispose();
 });

@@ -48,7 +48,7 @@ Imported GLBs stay in the browser and are not uploaded; the playground accepts e
 Install the tagged Git package; it is not published to npm yet:
 
 ```sh
-npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.1
+npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.3
 ```
 
 The Git install builds the library and TypeScript declarations. Start with the material effect:
@@ -67,6 +67,8 @@ style.setEnabled(true); // restore the anime shading
 For outlines and texture, insert `InkPass` after your scene render and before the final `OutputPass`. Use your existing composer and animation loop.
 
 **[Full integration example →](docs/integration.md)** includes the composer, animation timing, resizing and cleanup. **[API reference →](docs/api.md)** covers painted backgrounds, shadow controls, defaults and resource ownership.
+
+For dark interiors or unstable contours, follow the [layer-by-layer tuning and troubleshooting guide](docs/integration.md#tune-in-layers).
 
 ### Will my model work?
 
@@ -91,7 +93,7 @@ The [skill](skills/three-anime-style/SKILL.md) gives agents the integration sequ
 
 ## Upgrading from Three Ink
 
-The project was previously named **Three Ink**. Starting with v0.4.0, install `github:xymeow/three-anime-style#v0.4.1` and change imports from `@xymeow/three-ink` to `@xymeow/three-anime-style`. Remove the old dependency once imports are migrated. The exported names (`applyInk`, `InkPass`, `createBrushTexture`, `steppedTime`) and rendering behavior are unchanged. Replace the old skill folder with `skills/three-anime-style` to use the new invocation name.
+The project was previously named **Three Ink**. Starting with v0.4.0, install `github:xymeow/three-anime-style#v0.4.3` and change imports from `@xymeow/three-ink` to `@xymeow/three-anime-style`. Remove the old dependency once imports are migrated. The exported names (`applyInk`, `InkPass`, `createBrushTexture`, `steppedTime`) and rendering behavior are unchanged. Replace the old skill folder with `skills/three-anime-style` to use the new invocation name.
 
 ## Development and credits
 
