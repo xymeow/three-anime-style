@@ -43,31 +43,79 @@ npm run dev
 
 导入的 GLB 在浏览器内读取，不上传；试玩页要求资源嵌入文件，不加载外部资源 URL。`npm run build:demo` 生成的 `site-dist/` 也可以由你自己托管。
 
-## 接入已有项目
+## 快速接入：给自己的 Three.js 项目加动画画风
 
-目前通过带版本号的 Git 地址安装，尚未发布到 npm：
+渲染实现就在库的 [`src/`](src/index.ts) 中，可以直接通过 TypeScript / JavaScript 调用。[Skill](skills/three-anime-style/SKILL.md) 是给 coding agent 看的接入指南，帮助它找到你项目的渲染循环、材质和资源释放位置；手动接入无需安装 skill。
+
+### 1. 安装
+
+需要 **Three.js r186 + WebGLRenderer**，先确认已有项目的 Three.js 版本。目前通过 Git 版本标签安装：
 
 ```sh
 npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.3
 ```
 
-安装时会构建库和 TypeScript 类型。先接入最简单的角色色阶：
+### 2. 给已有模型加三段色阶
+
+在模型加载完成后调用。`model` 可以是 glTF 的 `gltf.scene`、一个 Mesh、一个 Group，也可以直接传整个 `scene`：
 
 ```ts
 import { applyInk } from "@xymeow/three-anime-style";
 
-// model 是已有带灯光场景中的 Object3D 或 glTF scene。
 const style = applyInk(model);
-style.setEnabled(false); // 看原材质
-style.setEnabled(true); // 恢复动画色阶
-// 移除效果时：style.dispose();
 ```
 
-需要描边和后期时，把 `InkPass` 加在现有 composer 的场景渲染之后、最终 `OutputPass` 之前。复用已有渲染循环即可。
+继续使用原有的 renderer、相机、灯光和动画循环。支持的材质会转换为三段光照，模型贴图和动画保留。只做这一步时，原来的 `renderer.render(scene, camera)` 照常使用。
 
-[完整接入示例](docs/integration.md)包含动画采样、窗口缩放、像素比例和资源释放；[API 文档](docs/api.md)包含背景笔触、阴影、参数默认值和兼容性。
+### 3. 加上钢笔描边与可选质感
 
-接入时先保留原场景灯光，显式设置 `grain: 0, acrylic: 0`，再逐层开启描边、背景笔触和表面质感。暗光或低角度描边异常的排查见[调参与故障定位](docs/integration.md#tune-in-layers)。
+如果项目还没有 composer，用已有 renderer 创建一个：
+
+```ts
+import { InkPass } from "@xymeow/three-anime-style";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const ink = new InkPass(scene, camera, {
+  penWidth: 1.1,
+  grain: 0,
+  acrylic: 0,
+  pixelRatio: renderer.getPixelRatio(),
+});
+composer.addPass(ink);
+composer.addPass(new OutputPass());
+
+// 在已有动画循环中，用这一行替换 renderer.render(scene, camera)：
+composer.render();
+```
+
+已有 composer 的项目只需插入 `InkPass`，位置在场景渲染之后、最终 `OutputPass` 之前。相机控制和模型动画仍在原来的循环里更新。
+
+先看上面的干净效果，再实时加一点表面质感：
+
+```ts
+ink.configure({ grain: 0.15, acrylic: 0.2 });
+```
+
+无需重新加载模型，就能切换原材质与效果：
+
+```ts
+style.setEnabled(false);
+ink.enabled = false;
+// 恢复效果：
+style.setEnabled(true);
+ink.enabled = true;
+```
+
+窗口变化时，同步调整 renderer、composer 的尺寸和相机。DPR 改变时，同步两者的像素比例与 `ink.configure({ pixelRatio })`。移除效果时调用 `style.dispose()`，从 composer 中移除 `ink`，再调用 `ink.dispose()`；整个页面卸载时，一并释放自己创建的其他 pass 和 composer。
+
+[完整接入示例](docs/integration.md)提供缩放、DPR 和可选 12 帧动画的代码；[API 文档](docs/api.md)介绍背景笔触与动画阴影。可以先在[本地试玩页](#先看效果)调出喜欢的观感，再把参数用于自己的项目，游戏里无需额外放一个调参面板。
+
+第一次对照先保留原场景灯光。暗光或低角度描边异常的排查见[调参与故障定位](docs/integration.md#tune-in-layers)。
 
 ### 哪些模型适用？
 
@@ -77,11 +125,11 @@ style.setEnabled(true); // 恢复动画色阶
 
 ## 让 agent 帮你接
 
-把仓库中的 skill 复制到使用它的项目：
+安装库后，把包内附带的 skill 复制到你的项目：
 
 ```sh
 mkdir -p .agents/skills
-cp -R /path/to/three-anime-style/skills/three-anime-style .agents/skills/
+cp -R node_modules/@xymeow/three-anime-style/skills/three-anime-style .agents/skills/
 ```
 
 然后告诉 agent：

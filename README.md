@@ -43,32 +43,79 @@ Open the Vite URL for the unified playground. Development requires Node 20.19+. 
 
 Imported GLBs stay in the browser and are not uploaded; the playground accepts embedded assets and blocks external asset URLs. You can also self-host the `site-dist/` output from `npm run build:demo`.
 
-## Add it to your app
+## Quick start: add anime rendering to your Three.js app
 
-Install the tagged Git package; it is not published to npm yet:
+The rendering implementation lives in the library's [`src/`](src/index.ts). The optional [skill](skills/three-anime-style/SKILL.md) is an integration guide for coding agents. You can use the library directly with ordinary TypeScript or JavaScript.
+
+### 1. Install
+
+Requires **Three.js r186 + WebGLRenderer**. Check your app's Three.js version before installing. The package is currently installed from a Git tag:
 
 ```sh
 npm install three@0.186.0 github:xymeow/three-anime-style#v0.4.3
 ```
 
-The Git install builds the library and TypeScript declarations. Start with the material effect:
+### 2. Apply three-tone shading to your model
+
+Call this after your model has loaded. `model` can be a glTF's `gltf.scene`, a mesh, a group, or your whole scene:
 
 ```ts
 import { applyInk } from "@xymeow/three-anime-style";
 
-// model is an Object3D or loaded glTF scene in your existing lit scene.
 const style = applyInk(model);
-
-style.setEnabled(false); // compare with the original materials
-style.setEnabled(true); // restore the anime shading
-// When removing the effect: style.dispose();
 ```
 
-For outlines and texture, insert `InkPass` after your scene render and before the final `OutputPass`. Use your existing composer and animation loop.
+Keep your existing renderer, camera, lights and animation loop. This converts supported materials to three-tone lighting while retaining the model's textures and animation. With only this step, keep calling `renderer.render(scene, camera)` as usual.
 
-**[Full integration example →](docs/integration.md)** includes the composer, animation timing, resizing and cleanup. **[API reference →](docs/api.md)** covers painted backgrounds, shadow controls, defaults and resource ownership.
+### 3. Add pen outlines and optional texture
 
-For dark interiors or unstable contours, follow the [layer-by-layer tuning and troubleshooting guide](docs/integration.md#tune-in-layers).
+For an app without a composer, create one using your existing renderer:
+
+```ts
+import { InkPass } from "@xymeow/three-anime-style";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const ink = new InkPass(scene, camera, {
+  penWidth: 1.1,
+  grain: 0,
+  acrylic: 0,
+  pixelRatio: renderer.getPixelRatio(),
+});
+composer.addPass(ink);
+composer.addPass(new OutputPass());
+
+// In your existing animation loop, replace renderer.render(scene, camera):
+composer.render();
+```
+
+If you already have a composer, insert only `InkPass` after the scene render and before the final `OutputPass`. Keep your existing controls and animation updates in the same loop.
+
+Start with the clean look above, then add a subtle finish live:
+
+```ts
+ink.configure({ grain: 0.15, acrylic: 0.2 });
+```
+
+Compare with the original materials without reloading the model:
+
+```ts
+style.setEnabled(false);
+ink.enabled = false;
+// Restore the effect:
+style.setEnabled(true);
+ink.enabled = true;
+```
+
+In your resize handler, resize both renderer and composer and update the camera. If DPR changes, update both pixel ratios and `ink.configure({ pixelRatio })`. On removal, call `style.dispose()`, remove `ink` from the composer, and call `ink.dispose()`. When tearing down a composer you created, also dispose its passes and the composer itself.
+
+**[Full integration example →](docs/integration.md)** has resize/DPR code and optional 12 fps animation. **[API reference →](docs/api.md)** covers painted scenery and anime shadows. Use the [local playground](#try-it-first) to explore the look, then use its parameter values in your app. A tuning panel in your own app is optional.
+
+Keep the original scene lighting for your first comparison. For dark interiors or unstable contours, follow the [tuning and troubleshooting guide](docs/integration.md#tune-in-layers).
 
 ### Will my model work?
 
@@ -78,11 +125,11 @@ Glass, blended transparency and custom shaders keep their original materials and
 
 ## Use with an AI coding agent
 
-Copy the portable skill from this repository into your consuming project's skill directory:
+After installing the library, copy its bundled skill into your project:
 
 ```sh
 mkdir -p .agents/skills
-cp -R /path/to/three-anime-style/skills/three-anime-style .agents/skills/
+cp -R node_modules/@xymeow/three-anime-style/skills/three-anime-style .agents/skills/
 ```
 
 Then ask:
