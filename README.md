@@ -91,10 +91,6 @@ Then ask:
 
 The [skill](skills/three-anime-style/SKILL.md) gives agents the integration sequence, compatibility checks and teardown rules. It works with agents that support `SKILL.md`; other agents can read the file directly. Contributors to this library should start with [AGENTS.md](AGENTS.md).
 
-## Upgrading from Three Ink
-
-The project was previously named **Three Ink**. Starting with v0.4.0, install `github:xymeow/three-anime-style#v0.4.3` and change imports from `@xymeow/three-ink` to `@xymeow/three-anime-style`. Remove the old dependency once imports are migrated. The exported names (`applyInk`, `InkPass`, `createBrushTexture`, `steppedTime`) and rendering behavior are unchanged. Replace the old skill folder with `skills/three-anime-style` to use the new invocation name.
-
 ## Development and credits
 
 ```sh

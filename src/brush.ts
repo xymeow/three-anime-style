@@ -59,7 +59,7 @@ export function createBrushTexture(seed = 517): CanvasTexture {
       }
   }
   const texture = new CanvasTexture(canvas);
-  texture.name = "Three Ink broad brush atlas";
+  texture.name = "Anime Style for Three.js broad brush atlas";
   texture.wrapS = texture.wrapT = RepeatWrapping;
   texture.minFilter = LinearMipmapLinearFilter;
   texture.magFilter = LinearFilter;

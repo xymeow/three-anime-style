@@ -90,10 +90,6 @@ cp -R /path/to/three-anime-style/skills/three-anime-style .agents/skills/
 
 [Skill](skills/three-anime-style/SKILL.md)说明了接入步骤、兼容性判断和资源释放规则。支持 `SKILL.md` 的 agent 可以直接使用；其他 agent 也可以读取这份文件。要修改库本身，从 [AGENTS.md](AGENTS.md) 开始。
 
-## 从 Three Ink 迁移
-
-项目原名 **Three Ink**。从 v0.4.0 起，用新地址安装，把 import 中的 `@xymeow/three-ink` 改成 `@xymeow/three-anime-style`，迁移后移除旧依赖。`applyInk`、`InkPass`、`createBrushTexture`、`steppedTime` 的名称和渲染行为保持不变。替换旧 skill 文件夹后，调用名改为 `$three-anime-style`。
-
 ## 开发与来源
 
 ```sh

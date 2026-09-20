@@ -229,7 +229,7 @@ export class InkPass extends Pass {
             "gl_FragColor = vec4(inkId,inkCel);",
           );
       };
-      m.customProgramCacheKey = () => "three-ink-id-v2";
+      m.customProgramCacheKey = () => "three-anime-style-id-v2";
       this.idMaterials.set(key, m);
     }
     const s = source as Material & Record<string, any>;

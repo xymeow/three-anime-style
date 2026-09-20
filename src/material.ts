@@ -273,7 +273,7 @@ export function applyInk(root: Object3D, options: InkOptions = {}): InkBinding {
           );
       };
       material.customProgramCacheKey = () =>
-        painted ? "three-ink-paint-v1" : "three-ink-toon-v2";
+        painted ? "three-anime-style-paint-v1" : "three-anime-style-toon-v2";
       cache.set(cacheKey, material);
       owned.push(material);
       return material;
